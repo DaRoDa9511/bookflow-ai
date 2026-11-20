@@ -20,7 +20,7 @@ export function Logo({ to = "/", className }: { to?: string; className?: string 
   return (
     <Link to={to} className={cn("flex items-center gap-2 font-semibold tracking-tight", className)}>
       <LogoMark />
-      <span>
+      <span className="whitespace-nowrap">
         BookFlow <span className="text-primary">AI</span>
       </span>
     </Link>

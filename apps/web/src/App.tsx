@@ -9,6 +9,7 @@ import {
 } from "@/components/guards";
 import { useBusiness } from "@/lib/auth";
 
+const Landing = lazy(() => import("@/routes/public/Landing"));
 const Login = lazy(() => import("@/routes/auth/Login"));
 const Signup = lazy(() => import("@/routes/auth/Signup"));
 const Apply = lazy(() => import("@/routes/auth/Apply"));
@@ -54,7 +55,7 @@ export default function App() {
   return (
     <Suspense fallback={<FullPageLoader />}>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Landing />} />
         <Route path="/b/:slug" element={<BusinessPage />} />
         <Route path="/me" element={<MePage />} />
         <Route
