@@ -28,6 +28,8 @@ const ServicesPage = lazy(() =>
 const StaffPage = lazy(() =>
   import("@/routes/business/CatalogPages").then((m) => ({ default: m.StaffPage })),
 );
+const BusinessPage = lazy(() => import("@/routes/public/BusinessPage"));
+const MePage = lazy(() => import("@/routes/me/MePage"));
 const HoursPage = lazy(() =>
   import("@/routes/business/CatalogPages").then((m) => ({ default: m.HoursPage })),
 );
@@ -51,6 +53,8 @@ export default function App() {
     <Suspense fallback={<FullPageLoader />}>
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/b/:slug" element={<BusinessPage />} />
+        <Route path="/me" element={<MePage />} />
         <Route
           path="/login"
           element={
