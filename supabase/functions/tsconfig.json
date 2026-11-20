@@ -12,5 +12,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["_shared/**/*.ts", "../tests/**/*.ts"]
+  "include": ["_shared/**/*.ts", "../tests/**/*.ts"],
+  "exclude": ["_shared/runtime/**"]
 }

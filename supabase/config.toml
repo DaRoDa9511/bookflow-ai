@@ -30,3 +30,9 @@ verify_jwt = false
 
 [functions.send-reminders]
 verify_jwt = false
+
+[functions.inbox-reply]
+verify_jwt = true
+
+[functions.simulator-message]
+verify_jwt = true

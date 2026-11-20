@@ -380,4 +380,41 @@ export const es = {
     tooLate: "No cancelable (menos de {{hours}} h)",
     staffSession: "Estás con una cuenta de negocio. Cierra sesión para entrar como cliente.",
   },
+  simulator: {
+    subtitle:
+      "Chatea con tu bot como si fueras un cliente. Es el mismo agente que atiende WhatsApp.",
+    online: "en línea",
+    typing: "escribiendo…",
+    empty:
+      "Escribe un mensaje o usa una sugerencia para empezar. Las citas que agende el bot aparecen en la agenda al instante.",
+    placeholder: "Escribe un mensaje",
+    send: "Enviar",
+    tryTitle: "Prueba estas conversaciones",
+    tryHint: "El bot consulta disponibilidad real, agenda, reprograma y cancela.",
+    s1: "Hola {{code}}, quiero un corte para mañana en la tarde",
+    s2: "¿Dónde quedan y tienen parqueadero?",
+    s3: "Quiero cambiar mi cita para otro día",
+    s4: "Necesito cancelar mi cita",
+    showTools: "Mostrar herramientas usadas",
+    phoneLabel: "Teléfono simulado",
+    newCustomer: "Nuevo cliente",
+    howItWorks:
+      "Cada mensaje pasa por la Edge Function simulator-message → agente con Claude → herramientas → base de datos. Con MESSAGING_PROVIDER=whatsapp el mismo flujo responde en WhatsApp.",
+    error: "El bot no pudo responder",
+  },
+  inbox: {
+    subtitle:
+      "Conversaciones del bot en WhatsApp y el simulador. Toma el control cuando haga falta.",
+    onlyHandoff: "Solo las que piden humano",
+    empty: "Sin conversaciones",
+    emptyHint: "Cuando los clientes escriban, las verás aquí en tiempo real.",
+    select: "Elige una conversación",
+    team: "Equipo",
+    bot: "Bot",
+    returnToBot: "Devolver al bot",
+    takeOver: "Tomar conversación",
+    handoffBanner: "El bot está en pausa en esta conversación: responde tú.",
+    replyPlaceholder: "Escribe una respuesta como el negocio",
+    send: "Enviar",
+  },
 };

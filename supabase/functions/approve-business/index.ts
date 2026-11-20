@@ -1,7 +1,7 @@
 // POST { application_id, action: "approve" | "reject", note? }
 // Runs the approval RPC with the caller's JWT (so is_super_admin() is enforced in
 // SQL), then sends the welcome / rejection email with Resend.
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "@supabase/supabase-js";
 import { approvalEmail, rejectionEmail, sendEmail } from "../_shared/email.ts";
 import { errorJson, json, preflight, sqlErrorCode } from "../_shared/http.ts";
 

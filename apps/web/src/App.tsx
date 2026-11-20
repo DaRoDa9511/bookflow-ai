@@ -30,6 +30,8 @@ const StaffPage = lazy(() =>
 );
 const BusinessPage = lazy(() => import("@/routes/public/BusinessPage"));
 const MePage = lazy(() => import("@/routes/me/MePage"));
+const SimulatorPage = lazy(() => import("@/routes/business/SimulatorPage"));
+const InboxPage = lazy(() => import("@/routes/business/InboxPage"));
 const HoursPage = lazy(() =>
   import("@/routes/business/CatalogPages").then((m) => ({ default: m.HoursPage })),
 );
@@ -120,6 +122,8 @@ export default function App() {
           <Route path="staff" element={owner(<StaffPage />)} />
           <Route path="assistant" element={owner(<AssistantPage />)} />
           <Route path="settings" element={owner(<SettingsPage />)} />
+          <Route path="simulator" element={owner(<SimulatorPage />)} />
+          <Route path="inbox" element={owner(<InboxPage />)} />
           <Route path="*" element={<Navigate to="/app" replace />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
