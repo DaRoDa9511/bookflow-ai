@@ -1,0 +1,32 @@
+# Minimal Supabase CLI config (supabase init). Local stack: `supabase start`.
+project_id = "bookflow-ai"
+
+[api]
+port = 54321
+schemas = ["public"]
+
+[db]
+port = 54322
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[auth]
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173/**"]
+
+[auth.sms]
+enable_signup = true
+enable_confirmations = false
+
+# Demo phone numbers that log in with a fixed OTP (no SMS provider needed locally).
+[auth.sms.test_otp]
+573001234501 = "123456"
+
+[functions.whatsapp-webhook]
+verify_jwt = false
+
+[functions.send-reminders]
+verify_jwt = false
