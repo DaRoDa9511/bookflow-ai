@@ -336,7 +336,7 @@ export class SqlStore {
 
   async markReminder(id: string, status: "sent" | "failed" | "skipped", error?: string) {
     await this.sql(
-      "update public.reminders set status = $2, sent_at = case when $2 = 'sent' then now() end, error = $3 where id = $1",
+      "update public.reminders set status = $2::text::public.reminder_status, sent_at = case when $2::text = 'sent' then now() end, error = $3 where id = $1",
       [id, status, error ?? null],
     );
   }
