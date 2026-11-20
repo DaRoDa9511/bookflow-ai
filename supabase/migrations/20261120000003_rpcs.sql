@@ -208,8 +208,9 @@ begin
   if length(trim(coalesce(p_customer_name, ''))) < 2 then
     raise exception 'invalid_name';
   end if;
-  -- Only trusted callers (the bot) may set a source other than web.
-  if not public.is_service_role() then
+  -- Only trusted callers may set a source other than web: the bot (service role)
+  -- and team members creating bookings from the panel ('admin').
+  if not public.is_service_role() and not (v_source = 'admin' and public.is_member(b.id)) then
     v_source := 'web';
   end if;
 
