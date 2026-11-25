@@ -22,7 +22,7 @@ The platform is multi-tenant: owners apply, a super admin approves, and a 4-step
 
 - **Frontend:** React 18, Vite, TypeScript (strict), Tailwind with shadcn/ui-style components, TanStack Query, React Hook Form + Zod, FullCalendar, Recharts, i18next (ES/EN), dark mode.
 - **Backend:** Supabase: Postgres with row-level security, Auth (email + phone OTP), Realtime, Storage, Edge Functions (Deno), pg_cron + pg_net.
-- **AI:** Claude API with tool use (9 tools, Zod-validated).
+- **AI:** LLM with tool use (9 tools, Zod-validated) behind a provider interface: Google Gemini (free tier) for the public demo, Claude as a drop-in alternative.
 - **Messaging:** WhatsApp Cloud API behind a provider interface, plus a built-in simulator.
 - **Quality:** Vitest (55 tests), PGlite, Playwright, ESLint, Prettier, GitHub Actions.
 

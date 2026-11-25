@@ -16,7 +16,7 @@ Barbershops, salons, clinics and spas get a WhatsApp assistant that answers ques
 
 ## Features
 
-- **AI agent on WhatsApp** (Claude with tool use): answers FAQs from the business knowledge base, offers only real free slots, books, lists, reschedules and cancels, and hands off to a human for complaints or medical questions. Replies in the customer's language (ES/EN).
+- **AI agent on WhatsApp** (LLM with tool use: Google Gemini on the free tier or Claude, switchable with one env var): answers FAQs from the business knowledge base, offers only real free slots, books, lists, reschedules and cancels, and hands off to a human for complaints or medical questions. Replies in the customer's language (ES/EN).
 - **One number for every business**: customers write `Hola DONPEPE` (the business booking code, via a `wa.me` link or QR); the agent routes the chat to that business.
 - **Built-in WhatsApp simulator**: the same pipeline as WhatsApp, so anyone can try the bot without Meta credentials. Bookings appear in the calendar in real time.
 - **Business dashboard**: KPIs, 30-day chart, FullCalendar agenda per staff with drag-to-reschedule, bookings table with CSV export, customers with history and total spent, inbox with tool calls and manual takeover.
@@ -66,7 +66,7 @@ flowchart LR
 
 ## Tech stack
 
-React 18, Vite, TypeScript (strict), Tailwind, shadcn/ui-style components, React Router, TanStack Query, React Hook Form + Zod, FullCalendar, Recharts, i18next · Supabase (Postgres, RLS, Auth, Realtime, Storage, Edge Functions on Deno, pg_cron, pg_net) · Claude API (`claude-sonnet-5-5`, tool use) · WhatsApp Cloud API · Resend · Vercel · Vitest, PGlite, Playwright, GitHub Actions.
+React 18, Vite, TypeScript (strict), Tailwind, shadcn/ui-style components, React Router, TanStack Query, React Hook Form + Zod, FullCalendar, Recharts, i18next · Supabase (Postgres, RLS, Auth, Realtime, Storage, Edge Functions on Deno, pg_cron, pg_net) · Gemini API (`gemini-3.5-flash-lite`, free tier) or Claude API (`claude-sonnet-5-5`), tool use · WhatsApp Cloud API · Resend · Vercel · Vitest, PGlite, Playwright, GitHub Actions.
 
 ## Project structure
 
@@ -107,7 +107,7 @@ The DB tests run the real migrations and seed on [PGlite](https://pglite.dev) (P
 
 ## Environment variables
 
-See [`.env.example`](.env.example). Web: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_WHATSAPP_NUMBER`, `VITE_DEMO_MODE`, `VITE_DEMO_PASSWORD`. Edge Functions: `ANTHROPIC_API_KEY`, `CLAUDE_MODEL`, `MESSAGING_PROVIDER`, `WHATSAPP_*`, `RESEND_API_KEY`, `CRON_SECRET`, `APP_URL`.
+See [`.env.example`](.env.example). Web: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_WHATSAPP_NUMBER`, `VITE_DEMO_MODE`, `VITE_DEMO_PASSWORD`. Edge Functions: `LLM_PROVIDER`, `GEMINI_API_KEY` / `GEMINI_MODEL` or `ANTHROPIC_API_KEY` / `CLAUDE_MODEL`, `MESSAGING_PROVIDER`, `WHATSAPP_*`, `RESEND_API_KEY`, `CRON_SECRET`, `APP_URL`.
 
 ## Connecting WhatsApp
 

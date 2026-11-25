@@ -3,6 +3,7 @@
 import postgres from "postgres";
 import { createClient } from "@supabase/supabase-js";
 import { anthropicLlm } from "../agent/anthropic.ts";
+import { geminiLlm } from "../agent/gemini.ts";
 import { SqlStore, type Sql } from "../agent/store.ts";
 import type { LlmClient } from "../agent/types.ts";
 import { providerFromEnv, type MessagingProvider } from "../messaging/provider.ts";
@@ -30,15 +31,22 @@ export function store(): SqlStore {
   return new SqlStore(sql());
 }
 
+/**
+ * LLM provider: LLM_PROVIDER=gemini|claude. Without it, Gemini is used when
+ * GEMINI_API_KEY is set (free tier), otherwise Claude.
+ */
 export function llm(): LlmClient {
-  const apiKey = env("ANTHROPIC_API_KEY");
-  if (!apiKey) {
-    return {
-      create: () => Promise.reject(new Error("ANTHROPIC_API_KEY is not set")),
-    };
+  const geminiKey = env("GEMINI_API_KEY");
+  const anthropicKey = env("ANTHROPIC_API_KEY");
+  const chosen = env("LLM_PROVIDER") ?? (geminiKey ? "gemini" : "claude");
+  if (chosen === "gemini") {
+    if (!geminiKey) return { create: () => Promise.reject(new Error("GEMINI_API_KEY is not set")) };
+    return geminiLlm({ apiKey: geminiKey, model: env("GEMINI_MODEL") });
   }
+  if (!anthropicKey)
+    return { create: () => Promise.reject(new Error("ANTHROPIC_API_KEY is not set")) };
   return anthropicLlm({
-    apiKey,
+    apiKey: anthropicKey,
     model: env("CLAUDE_MODEL"),
     fallbacks: env("CLAUDE_FALLBACKS") !== "off",
   });
