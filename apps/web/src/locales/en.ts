@@ -399,7 +399,7 @@ export const en: typeof es = {
     phoneLabel: "Simulated phone",
     newCustomer: "New customer",
     howItWorks:
-      "Each message goes through the simulator-message Edge Function → Claude agent → tools → database. With MESSAGING_PROVIDER=whatsapp the same flow replies on WhatsApp.",
+      "Each message goes through the simulator-message Edge Function → AI agent (Gemini or Claude) → tools → database. With MESSAGING_PROVIDER=whatsapp the same flow replies on WhatsApp.",
     error: "The bot couldn't reply",
   },
   inbox: {
