@@ -9,7 +9,7 @@ Barbershops, salons, clinics and spas get a WhatsApp assistant that answers ques
 
 |                         |                                                                                                     |
 | ----------------------- | --------------------------------------------------------------------------------------------------- |
-| **Live demo**           | _set after deploy_ (`https://<your-app>.vercel.app`)                                                |
+| **Live demo**           | https://bookflow-ai-sepia.vercel.app                                                                |
 | **Demo accounts**       | `admin@bookflow.demo` (super admin) · `owner@donpepe.demo` (owner) · `barbero@donpepe.demo` (staff) |
 | **Demo password**       | `BookFlow2026!` (demo data only)                                                                    |
 | **Try it in 2 minutes** | Sign in as the owner → **Simulator** → "Hola DONPEPE, quiero un corte mañana" → open **Calendar**   |
