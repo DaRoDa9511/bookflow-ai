@@ -51,12 +51,15 @@ export default function Dashboard() {
       return data as Metrics;
     },
   });
-  const now = new Date();
-  const upcomingQ = useBookings({
-    businessId: business.id,
-    from: now.toISOString(),
-    to: new Date(now.getTime() + 7 * 86_400_000).toISOString(),
+  // Fixed when the page mounts: a new Date() per render would change the query key forever.
+  const [range] = useState(() => {
+    const start = new Date();
+    return {
+      from: start.toISOString(),
+      to: new Date(start.getTime() + 7 * 86_400_000).toISOString(),
+    };
   });
+  const upcomingQ = useBookings({ businessId: business.id, ...range });
   const upcoming = (upcomingQ.data ?? []).filter((b) => b.status === "confirmed").slice(0, 8);
   const m = metricsQ.data;
 
