@@ -49,6 +49,8 @@ export const en: typeof es = {
     staff: "Staff",
     customer: "Customer",
     today: "Today",
+    menu: "Menu",
+    dates: "Dates",
   },
   errors: {
     slot_taken: "That time was just taken. Please pick another one.",
@@ -131,6 +133,7 @@ export const en: typeof es = {
     applyAgain: "Submit a new application",
   },
   admin: {
+    badge: "Super admin",
     title: "Platform dashboard",
     subtitle: "Applications, businesses and global metrics.",
     activeBusinesses: "Active businesses",
@@ -338,6 +341,10 @@ export const en: typeof es = {
   booking: {
     noSlots: "No free times on this day. Try another date.",
     anyStaff: "Anyone available",
+    morning: "Morning",
+    afternoon: "Afternoon",
+    evening: "Evening",
+    withStaff: "{{time}} with {{name}}",
   },
   public: {
     notFound: "Business not found",
@@ -412,6 +419,8 @@ export const en: typeof es = {
     bot: "Bot",
     returnToBot: "Hand back to bot",
     takeOver: "Take over",
+    takeOverHint: "Pauses the bot in this chat so you can reply yourself.",
+    returnToBotHint: "The bot replies automatically again in this chat.",
     handoffBanner: "The bot is paused in this conversation: you reply.",
     replyPlaceholder: "Reply as the business",
     send: "Send",

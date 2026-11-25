@@ -1,3 +1,4 @@
+import i18n from "@/lib/i18n";
 import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { homePath, useAuth } from "@/lib/auth";
@@ -7,7 +8,7 @@ export function FullPageLoader() {
   return (
     <div className="flex min-h-screen items-center justify-center" role="status" aria-live="polite">
       <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      <span className="sr-only">Loading…</span>
+      <span className="sr-only">{i18n.t("common.loading")}</span>
     </div>
   );
 }

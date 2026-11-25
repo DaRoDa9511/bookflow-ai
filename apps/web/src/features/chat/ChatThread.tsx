@@ -1,5 +1,5 @@
-import { Bot, ChevronDown, UserRound, Wrench } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Bot, UserRound } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import type { Message } from "@/types/models";
@@ -24,82 +24,66 @@ function WaText({ text }: { text: string }) {
   );
 }
 
-function ToolChip({ m }: { m: Message }) {
-  const [open, setOpen] = useState(false);
-  const payload = m.tool_payload as {
-    input?: unknown;
-    result?: unknown;
-    is_error?: boolean;
-  } | null;
-  return (
-    <div className="flex justify-center">
-      <div className="max-w-[90%] text-xs">
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className={cn(
-            "inline-flex items-center gap-1 rounded-full border bg-background/80 px-2 py-0.5 font-mono text-muted-foreground",
-            payload?.is_error && "border-destructive/40 text-destructive",
-          )}
-        >
-          <Wrench className="h-3 w-3" /> {m.tool_name}
-          <ChevronDown className={cn("h-3 w-3 transition", open && "rotate-180")} />
-        </button>
-        {open && (
-          <pre className="mt-1 max-h-60 overflow-auto rounded-md border bg-background p-2 text-[10px] leading-snug">
-            {JSON.stringify(payload, null, 2)}
-          </pre>
-        )}
-      </div>
-    </div>
-  );
-}
-
+/**
+ * Conversation thread. Internal agent steps (tool calls) are never shown:
+ * only what the customer and the business actually see.
+ * - "customer": the simulator phone (WhatsApp look, customer on the right).
+ * - "business": the inbox (neutral look, business replies on the right).
+ */
 export function ChatThread({
   messages,
-  showTools,
   typing,
   perspective = "customer",
 }: {
   messages: Message[];
-  showTools: boolean;
   typing?: boolean;
-  /** "customer": the simulator phone (user on the right). "business": inbox (bot on the right). */
   perspective?: "customer" | "business";
 }) {
   const { t, i18n } = useTranslation();
   const end = useRef<HTMLDivElement>(null);
+  const visible = messages.filter(
+    (m) => (m.role === "user" || m.role === "assistant") && m.content,
+  );
+
   useEffect(() => {
     end.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages.length, typing]);
+  }, [visible.length, typing]);
+
+  const phone = perspective === "customer";
 
   return (
     <div className="space-y-2 p-3" aria-live="polite">
-      {messages.map((m) => {
-        if (m.role === "tool")
-          return showTools && m.tool_name !== "human" ? <ToolChip key={m.id} m={m} /> : null;
-        if (m.role === "system") return null;
+      {visible.map((m) => {
         const fromCustomer = m.role === "user";
-        const right = perspective === "customer" ? fromCustomer : !fromCustomer;
+        const right = phone ? fromCustomer : !fromCustomer;
         const human = m.tool_name === "human";
         return (
           <div key={m.id} className={cn("flex", right ? "justify-end" : "justify-start")}>
             <div
               className={cn(
-                "max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-1.5 text-sm shadow-sm",
-                right
-                  ? "rounded-tr-none bg-[#d9fdd3] text-[#111b21]"
-                  : "rounded-tl-none bg-white text-[#111b21]",
+                "max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-1.5 text-sm",
+                phone
+                  ? right
+                    ? "rounded-tr-none bg-[#d9fdd3] text-[#111b21] shadow-sm"
+                    : "rounded-tl-none bg-white text-[#111b21] shadow-sm"
+                  : right
+                    ? "rounded-tr-none border border-primary/20 bg-primary/10 text-foreground"
+                    : "rounded-tl-none border bg-card text-card-foreground",
               )}
             >
-              {perspective === "business" && !fromCustomer && (
-                <p className="mb-0.5 flex items-center gap-1 text-[10px] font-semibold text-[#128C4A]">
+              {!phone && !fromCustomer && (
+                <p className="mb-0.5 flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
                   {human ? <UserRound className="h-3 w-3" /> : <Bot className="h-3 w-3" />}
                   {human ? t("inbox.team") : t("inbox.bot")}
                 </p>
               )}
               <WaText text={m.content} />
-              <span className="ml-2 float-right mt-1 text-[10px] text-[#667781]">
+              <span
+                className={cn(
+                  "float-right ml-2 mt-1 text-[10px]",
+                  phone ? "text-[#667781]" : "text-muted-foreground",
+                )}
+              >
                 {time(m.created_at, i18n.language)}
               </span>
             </div>

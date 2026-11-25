@@ -79,7 +79,8 @@ export default function AppLayout() {
             className={({ isActive }) =>
               cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
-                isActive && "bg-accent text-accent-foreground",
+                isActive &&
+                  "bg-accent font-semibold text-foreground shadow-[inset_2px_0_0_hsl(var(--primary))]",
               )
             }
           >
@@ -174,7 +175,7 @@ export default function AppLayout() {
             variant="ghost"
             size="icon"
             className="lg:hidden"
-            aria-label="menu"
+            aria-label={t("common.menu")}
             onClick={() => setOpen(true)}
           >
             <Menu />

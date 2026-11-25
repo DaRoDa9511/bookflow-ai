@@ -1,5 +1,6 @@
 import { Moon, Sun } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 
 type Theme = "light" | "dark";
@@ -39,8 +40,9 @@ export const useTheme = () => useContext(ThemeContext);
 
 export function ThemeToggle() {
   const { theme, toggle } = useTheme();
+  const { t } = useTranslation();
   return (
-    <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
+    <Button variant="ghost" size="icon" onClick={toggle} aria-label={t("common.theme")}>
       {theme === "dark" ? <Sun /> : <Moon />}
     </Button>
   );

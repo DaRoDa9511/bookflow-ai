@@ -15,7 +15,8 @@ export function formatMoney(
     return new Intl.NumberFormat(locale, {
       style: "currency",
       currency,
-      maximumFractionDigits: ["COP", "CLP"].includes(currency) ? 0 : 2,
+      currencyDisplay: "narrowSymbol",
+      maximumFractionDigits: ["COP", "CLP", "PYG"].includes(currency) ? 0 : 2,
     }).format(value);
   } catch {
     return `${value} ${currency}`;

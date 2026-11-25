@@ -47,6 +47,8 @@ export const es = {
     staff: "Personal",
     customer: "Cliente",
     today: "Hoy",
+    menu: "Menú",
+    dates: "Fechas",
   },
   errors: {
     slot_taken: "Ese horario acaba de ser tomado. Elige otro.",
@@ -128,6 +130,7 @@ export const es = {
     applyAgain: "Enviar una nueva solicitud",
   },
   admin: {
+    badge: "Super admin",
     title: "Panel de la plataforma",
     subtitle: "Solicitudes, negocios y métricas globales.",
     activeBusinesses: "Negocios activos",
@@ -338,6 +341,10 @@ export const es = {
   booking: {
     noSlots: "No hay horarios libres este día. Prueba otra fecha.",
     anyStaff: "Cualquiera disponible",
+    morning: "Mañana",
+    afternoon: "Tarde",
+    evening: "Noche",
+    withStaff: "{{time}} con {{name}}",
   },
   public: {
     notFound: "Negocio no encontrado",
@@ -413,6 +420,8 @@ export const es = {
     bot: "Bot",
     returnToBot: "Devolver al bot",
     takeOver: "Tomar conversación",
+    takeOverHint: "Pausa el bot en este chat para que respondas tú.",
+    returnToBotHint: "El bot vuelve a responder automáticamente en este chat.",
     handoffBanner: "El bot está en pausa en esta conversación: responde tú.",
     replyPlaceholder: "Escribe una respuesta como el negocio",
     send: "Enviar",

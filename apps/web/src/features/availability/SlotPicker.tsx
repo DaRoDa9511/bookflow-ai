@@ -17,11 +17,15 @@ export function DateStrip({
   onChange: (d: string) => void;
   days?: number;
 }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const today = localDate(new Date(), timezone);
   const dates = Array.from({ length: days }, (_, i) => addDays(today, i));
   return (
-    <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2" role="listbox" aria-label="dates">
+    <div
+      className="no-scrollbar flex min-w-0 max-w-full gap-1.5 overflow-x-auto"
+      role="listbox"
+      aria-label={t("common.dates")}
+    >
       {dates.map((d) => {
         const dt = new Date(`${d}T12:00:00Z`);
         const selected = d === value;
@@ -33,16 +37,17 @@ export function DateStrip({
             aria-selected={selected}
             onClick={() => onChange(d)}
             className={cn(
-              "flex w-16 shrink-0 flex-col items-center rounded-lg border px-2 py-2 text-xs transition",
-              selected ? "border-primary bg-primary text-primary-foreground" : "hover:bg-accent",
+              "flex w-12 shrink-0 flex-col items-center rounded-md border py-1.5 text-[11px] leading-tight transition",
+              selected
+                ? "border-primary bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground",
             )}
           >
             <span className="uppercase opacity-80">
               {dt.toLocaleDateString(i18n.language, { weekday: "short", timeZone: "UTC" })}
             </span>
-            <span className="text-lg font-semibold leading-tight">{Number(d.slice(8))}</span>
-            <span className="opacity-80">
-              {dt.toLocaleDateString(i18n.language, { month: "short", timeZone: "UTC" })}
+            <span className={cn("text-sm font-semibold", !selected && "text-foreground")}>
+              {Number(d.slice(8))}
             </span>
           </button>
         );
@@ -78,9 +83,9 @@ export function SlotPicker({
   if (!date) return null;
   if (isLoading) {
     return (
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-        {Array.from({ length: 8 }, (_, i) => (
-          <Skeleton key={i} className="h-10" />
+      <div className="flex flex-wrap gap-1.5">
+        {Array.from({ length: 10 }, (_, i) => (
+          <Skeleton key={i} className="h-8 w-14" />
         ))}
       </div>
     );
@@ -101,37 +106,59 @@ export function SlotPicker({
     );
   }
 
+  const groups: { key: "morning" | "afternoon" | "evening"; slots: typeof unique }[] = [
+    { key: "morning", slots: [] },
+    { key: "afternoon", slots: [] },
+    { key: "evening", slots: [] },
+  ];
+  for (const s of unique) {
+    const hh = Number(localTime(new Date(s.start), timezone).slice(0, 2));
+    groups[hh < 12 ? 0 : hh < 18 ? 1 : 2].slots.push(s);
+  }
+  const selectedSlot = unique.find(
+    (s) => value?.start === s.start && (!staffId || value.staff_id === s.staff_id),
+  );
+
   return (
-    <div
-      className="grid grid-cols-3 gap-2 sm:grid-cols-4"
-      role="listbox"
-      aria-label={t("common.time")}
-    >
-      {unique.map((s) => {
-        const selected = value?.start === s.start && (!staffId || value.staff_id === s.staff_id);
-        return (
-          <button
-            key={`${s.start}-${s.staff_id}`}
-            type="button"
-            role="option"
-            aria-selected={selected}
-            onClick={() => onChange({ start: s.start, staff_id: s.staff_id })}
-            className={cn(
-              "rounded-md border px-2 py-2 text-sm font-medium tabular-nums transition",
-              selected
-                ? "border-primary bg-primary text-primary-foreground"
-                : "hover:border-primary hover:bg-accent",
-            )}
-          >
-            {localTime(new Date(s.start), timezone)}
-            {!staffId && staffNames && (
-              <span className="block truncate text-[10px] font-normal opacity-70">
-                {staffNames[s.staff_id]}
-              </span>
-            )}
-          </button>
-        );
-      })}
+    <div className="space-y-3" role="listbox" aria-label={t("common.time")}>
+      {groups
+        .filter((g) => g.slots.length > 0)
+        .map((g) => (
+          <div key={g.key} className="space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground">{t(`booking.${g.key}`)}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {g.slots.map((s) => {
+                const selected = selectedSlot === s;
+                return (
+                  <button
+                    key={`${s.start}-${s.staff_id}`}
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    title={staffNames?.[s.staff_id]}
+                    onClick={() => onChange({ start: s.start, staff_id: s.staff_id })}
+                    className={cn(
+                      "h-8 rounded-md border px-2.5 text-xs font-medium tabular-nums transition",
+                      selected
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "hover:border-primary/60 hover:bg-accent",
+                    )}
+                  >
+                    {localTime(new Date(s.start), timezone)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      {selectedSlot && !staffId && staffNames && (
+        <p className="text-xs text-muted-foreground">
+          {t("booking.withStaff", {
+            time: localTime(new Date(selectedSlot.start), timezone),
+            name: staffNames[selectedSlot.staff_id],
+          })}
+        </p>
+      )}
     </div>
   );
 }

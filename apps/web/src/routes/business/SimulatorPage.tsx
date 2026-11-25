@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { PageHeader, Switch } from "@/components/ui/misc";
+import { PageHeader } from "@/components/ui/misc";
 import { useChatRealtime, useMessages } from "@/features/chat/api";
 import { ChatThread } from "@/features/chat/ChatThread";
 import { useBookingsRealtime } from "@/features/bookings/api";
@@ -45,7 +45,6 @@ export default function SimulatorPage() {
   const [phone, setPhone] = usePhone(business.id);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
-  const [showTools, setShowTools] = useState(true);
   const [optimistic, setOptimistic] = useState<Message[]>([]);
   useChatRealtime(business.id);
   useBookingsRealtime(business.id);
@@ -139,7 +138,7 @@ export default function SimulatorPage() {
                   </p>
                 </div>
               ) : (
-                <ChatThread messages={messages} showTools={showTools} typing={sending} />
+                <ChatThread messages={messages} typing={sending} />
               )}
             </div>
             <form
@@ -193,10 +192,6 @@ export default function SimulatorPage() {
           </Card>
           <Card>
             <CardContent className="space-y-3 pt-5 text-sm">
-              <label className="flex items-center gap-2">
-                <Switch checked={showTools} onCheckedChange={setShowTools} />
-                {t("simulator.showTools")}
-              </label>
               <p className="text-muted-foreground">
                 {t("simulator.phoneLabel")}: <span className="font-mono">{phone}</span>
               </p>

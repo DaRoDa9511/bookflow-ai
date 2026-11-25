@@ -21,7 +21,6 @@ export default function InboxPage() {
   const qc = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [onlyHandoff, setOnlyHandoff] = useState(false);
-  const [showTools, setShowTools] = useState(true);
   const [reply, setReply] = useState("");
   const [busy, setBusy] = useState(false);
   useChatRealtime(business.id);
@@ -156,15 +155,12 @@ export default function InboxPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="hidden items-center gap-2 text-xs sm:flex">
-                    <Switch checked={showTools} onCheckedChange={setShowTools} />
-                    {t("simulator.showTools")}
-                  </label>
                   {selected.handoff_to_human ? (
                     <Button
                       size="sm"
                       variant="outline"
                       loading={busy}
+                      title={t("inbox.returnToBotHint")}
                       onClick={() => act(selected, { release: true })}
                     >
                       <Bot /> {t("inbox.returnToBot")}
@@ -174,6 +170,7 @@ export default function InboxPage() {
                       size="sm"
                       variant="outline"
                       loading={busy}
+                      title={t("inbox.takeOverHint")}
                       onClick={() => act(selected, { release: false })}
                     >
                       <Hand /> {t("inbox.takeOver")}
@@ -185,20 +182,18 @@ export default function InboxPage() {
                 <div className="flex items-center gap-2 border-b bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
                   <AlertTriangle className="h-4 w-4" />
                   {t("inbox.handoffBanner")}
-                  {typeof selected.state?.handoff_reason === "string" && (
-                    <span className="opacity-80">· {selected.state.handoff_reason}</span>
-                  )}
+                  {typeof selected.state?.handoff_reason === "string" &&
+                    selected.state.handoff_reason !== "manual" &&
+                    !selected.state.handoff_reason.startsWith("agent_error") && (
+                      <span className="opacity-80">· {selected.state.handoff_reason}</span>
+                    )}
                 </div>
               )}
-              <div className="flex-1 overflow-y-auto bg-[#efeae2] dark:bg-muted/40">
+              <div className="flex-1 overflow-y-auto bg-muted/30">
                 {messagesQ.isLoading ? (
                   <Skeleton className="m-3 h-40" />
                 ) : (
-                  <ChatThread
-                    messages={messagesQ.data ?? []}
-                    showTools={showTools}
-                    perspective="business"
-                  />
+                  <ChatThread messages={messagesQ.data ?? []} perspective="business" />
                 )}
               </div>
               <form

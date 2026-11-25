@@ -4,10 +4,7 @@ import { cn } from "@/lib/utils";
 type Div = React.HTMLAttributes<HTMLDivElement>;
 
 export const Card = ({ className, ...p }: Div) => (
-  <div
-    className={cn("rounded-xl border bg-card text-card-foreground shadow-sm", className)}
-    {...p}
-  />
+  <div className={cn("rounded-lg border bg-card text-card-foreground", className)} {...p} />
 );
 export const CardHeader = ({ className, ...p }: Div) => (
   <div className={cn("flex flex-col space-y-1.5 p-5", className)} {...p} />

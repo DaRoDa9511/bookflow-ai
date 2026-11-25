@@ -13,24 +13,10 @@ import { Input, Select } from "@/components/ui/input";
 import { Field } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
+import { timezoneLabel, timezoneOptions } from "@/lib/regional";
 import { E164, normalizePhone } from "@/lib/utils";
 import type { Application, BusinessCategory } from "@/types/models";
 
-export const TIMEZONES = [
-  "America/Bogota",
-  "America/Mexico_City",
-  "America/Lima",
-  "America/Santiago",
-  "America/Argentina/Buenos_Aires",
-  "America/Caracas",
-  "America/Guayaquil",
-  "America/Panama",
-  "America/New_York",
-  "America/Chicago",
-  "America/Los_Angeles",
-  "Europe/Madrid",
-  "UTC",
-];
 const CATEGORIES: BusinessCategory[] = ["barbershop", "salon", "clinic", "spa", "other"];
 
 const schema = z.object({
@@ -65,13 +51,13 @@ export function useMyApplication() {
 }
 
 export default function Apply() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { session, memberships } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const appQ = useMyApplication();
   const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const zones = TIMEZONES.includes(browserTz) ? TIMEZONES : [browserTz, ...TIMEZONES];
+  const zones = timezoneOptions(browserTz);
   const {
     register,
     handleSubmit,
@@ -144,7 +130,7 @@ export default function Apply() {
               <Select id="a-tz" {...register("timezone")}>
                 {zones.map((z) => (
                   <option key={z} value={z}>
-                    {z}
+                    {timezoneLabel(z, i18n.language)}
                   </option>
                 ))}
               </Select>

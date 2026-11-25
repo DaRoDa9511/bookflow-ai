@@ -51,12 +51,12 @@ export function Stat({
   return (
     <Card className="p-4">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-accent-foreground [&_svg]:h-5 [&_svg]:w-5">
+        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted text-muted-foreground [&_svg]:h-4 [&_svg]:w-4">
           {icon}
         </div>
         <div>
           <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-2xl font-semibold tabular-nums">{value}</p>
+          <p className="text-xl font-semibold tabular-nums">{value}</p>
         </div>
       </div>
     </Card>
@@ -167,7 +167,7 @@ export default function AdminPage() {
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-3">
             <Logo to="/admin" />
-            <Badge>Super admin</Badge>
+            <Badge>{t("admin.badge")}</Badge>
           </div>
           <div className="flex items-center gap-2">
             <span className="hidden text-sm text-muted-foreground sm:inline">{profile?.email}</span>

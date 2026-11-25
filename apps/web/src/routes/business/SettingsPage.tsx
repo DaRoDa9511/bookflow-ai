@@ -13,7 +13,7 @@ import { Input, Select } from "@/components/ui/input";
 import { Field } from "@/components/ui/label";
 import { PageHeader, Switch } from "@/components/ui/misc";
 import { useStaff } from "@/features/catalog/api";
-import { TIMEZONES } from "@/routes/auth/Apply";
+import { CURRENCIES, currencyLabel, timezoneLabel, timezoneOptions } from "@/lib/regional";
 import { useAuth, useBusiness } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { E164, errorCode, normalizePhone } from "@/lib/utils";
@@ -32,7 +32,7 @@ const schema = z.object({
 type Form = z.infer<typeof schema>;
 
 export default function SettingsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { business } = useBusiness();
   const { refresh } = useAuth();
   const qc = useQueryClient();
@@ -160,9 +160,10 @@ export default function SettingsPage() {
     await qc.invalidateQueries({ queryKey: ["members", business.id] });
   }
 
-  const zones = TIMEZONES.includes(business.timezone)
-    ? TIMEZONES
-    : [business.timezone, ...TIMEZONES];
+  const zones = timezoneOptions(business.timezone);
+  const currencies = CURRENCIES.includes(business.currency)
+    ? CURRENCIES
+    : [business.currency, ...CURRENCIES];
   const staffName = (id: string | null) => staff.find((s) => s.id === id)?.display_name;
 
   return (
@@ -223,13 +224,19 @@ export default function SettingsPage() {
                   <Select id="st-tz" {...register("timezone")}>
                     {zones.map((z) => (
                       <option key={z} value={z}>
-                        {z}
+                        {timezoneLabel(z, i18n.language)}
                       </option>
                     ))}
                   </Select>
                 </Field>
                 <Field label={t("settings.currency")} htmlFor="st-cur">
-                  <Input id="st-cur" maxLength={3} {...register("currency")} />
+                  <Select id="st-cur" {...register("currency")}>
+                    {currencies.map((c) => (
+                      <option key={c} value={c}>
+                        {currencyLabel(c, i18n.language)}
+                      </option>
+                    ))}
+                  </Select>
                 </Field>
               </div>
               <div className="space-y-3 rounded-lg border p-4">
