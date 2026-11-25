@@ -2,7 +2,7 @@
 
 -- ───────────────────────── utils ─────────────────────────
 create or replace function public.slugify(txt text)
-returns text language sql immutable as $$
+returns text language sql immutable set search_path = public as $$
   select trim(both '-' from regexp_replace(
     translate(lower(coalesce(txt, '')), 'áéíóúàèìòùäëïöüâêîôûñç', 'aeiouaeiouaeiouaeiounc'),
     '[^a-z0-9]+', '-', 'g'

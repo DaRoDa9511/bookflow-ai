@@ -64,7 +64,7 @@ begin
   if exists (select 1 from pg_available_extensions where name = 'pg_cron')
      and exists (select 1 from pg_available_extensions where name = 'pg_net') then
     create extension if not exists pg_cron;
-    create extension if not exists pg_net;
+    create extension if not exists pg_net with schema extensions;
     perform cron.schedule('bookflow-expire-pending', '*/5 * * * *', 'select public.expire_pending_payments()');
     perform cron.schedule('bookflow-send-reminders', '*/5 * * * *', 'select public.invoke_send_reminders()');
   end if;

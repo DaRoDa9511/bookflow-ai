@@ -21,6 +21,11 @@ function sql(): Sql {
     (await conn.unsafe(text, params as never[])) as unknown as Record<string, unknown>[];
 }
 
+/** Raw SQL access (service-level) for small internal lookups. */
+export function sqlClient(): Sql {
+  return sql();
+}
+
 export function store(): SqlStore {
   return new SqlStore(sql());
 }

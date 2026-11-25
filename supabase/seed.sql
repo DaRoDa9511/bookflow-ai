@@ -3,6 +3,8 @@
 -- Accounts: admin@bookflow.demo (super admin), owner@donpepe.demo, barbero@donpepe.demo,
 --           owner@sonrisa.demo, solicitud@spazen.demo (pending application)
 
+set search_path = public, extensions;
+
 -- ───────────── auth users ─────────────
 with u(id, email, full_name) as (
   values

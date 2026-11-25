@@ -82,7 +82,7 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 create or replace function public.touch_updated_at()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin
   new.updated_at = now();
   return new;
