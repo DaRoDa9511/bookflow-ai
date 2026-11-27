@@ -151,6 +151,25 @@ describe("AI agent (Claude mocked) on the real schema", () => {
     expect(bookings[0]).toMatchObject({ status: "confirmed", source: "whatsapp" });
   });
 
+  it("records the customer's attendance confirmation (reply 'Confirmar')", async () => {
+    const llm = scripted([
+      () => toolUse("confirm_attendance", { booking_id: null }),
+      (req) => {
+        expect(lastResult<{ status: string }>(req).status).toBe("attendance_confirmed");
+        return say("¡Gracias por confirmar! Te esperamos.");
+      },
+    ]);
+    await handleInbound(
+      { channel: "simulator", from: phone(2), text: "Confirmar" },
+      { store, llm, provider },
+    );
+    const { rows } = await db.query<{ c: Date | null }>(
+      "select b.customer_confirmed_at c from bookings b join customers cu on cu.id = b.customer_id where cu.phone = $1",
+      [phone(2)],
+    );
+    expect(rows[0].c).not.toBeNull();
+  });
+
   it("reschedules the customer's own appointment using list_my_bookings", async () => {
     const before = (await bookingsOf(phone(2)))[0];
     const day = weekdayAhead(5);
@@ -188,6 +207,11 @@ describe("AI agent (Claude mocked) on the real schema", () => {
     expect(res.status).toBe("replied");
     const after = (await bookingsOf(phone(2)))[0];
     expect(after.starts_at.getTime()).not.toBe(before.starts_at.getTime());
+    const confirmed = await db.query<{ c: Date | null }>(
+      "select customer_confirmed_at c from bookings where id = $1",
+      [before.id],
+    );
+    expect(confirmed.rows[0].c).toBeNull(); // a moved appointment must be confirmed again
     const reminders = await db.query<{ n: number }>(
       "select count(*)::int n from reminders where booking_id = $1 and status = 'scheduled'",
       [before.id],

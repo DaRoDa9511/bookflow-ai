@@ -2,6 +2,8 @@ import type { Session } from "@supabase/supabase-js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Business, Membership, MemberRole, Profile } from "@/types/models";
+import { toast } from "sonner";
+import i18n from "./i18n";
 import { supabase } from "./supabase";
 
 interface AuthState {
@@ -34,7 +36,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
+      // A stored session can be revoked elsewhere: verify it with the server.
+      if (data.session) {
+        const { error } = await supabase.auth.getUser();
+        if (error && /session|jwt|token/i.test(error.message)) {
+          await supabase.auth.signOut({ scope: "local" });
+          toast.info(i18n.t("auth.sessionExpired"));
+          setSession(null);
+          setSessionLoading(false);
+          return;
+        }
+      }
       setSession(data.session);
       setSessionLoading(false);
     });
@@ -102,7 +115,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ]);
       },
       signOut: async () => {
-        await supabase.auth.signOut();
+        // Only this device: shared demo accounts must not log out other visitors.
+        await supabase.auth.signOut({ scope: "local" });
         qc.clear();
       },
     };

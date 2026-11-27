@@ -16,6 +16,8 @@ export function formatMoney(
       style: "currency",
       currency,
       currencyDisplay: "narrowSymbol",
+      // "45 Bs" instead of "45,00 Bs"; cents only when there are cents.
+      minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
       maximumFractionDigits: ["COP", "CLP", "PYG"].includes(currency) ? 0 : 2,
     }).format(value);
   } catch {
@@ -66,10 +68,15 @@ export function downloadFile(name: string, content: string, type = "text/csv;cha
 
 export const E164 = /^\+[1-9]\d{7,14}$/;
 
-export function normalizePhone(raw: string, defaultCountry = "57"): string {
-  const digits = raw.replace(/[^\d+]/g, "");
-  if (digits.startsWith("+")) return "+" + digits.slice(1).replace(/\D/g, "");
-  if (digits.startsWith("00")) return "+" + digits.slice(2);
-  if (digits.length === 10 && defaultCountry) return `+${defaultCountry}${digits}`;
-  return "+" + digits;
+/**
+ * Normalizes a phone to E.164. Numbers typed without "+" get the business
+ * country's dialing code (e.g. "72792030" in Bolivia -> "+59172792030").
+ */
+export function normalizePhone(raw: string, dialCode = ""): string {
+  const cleaned = raw.replace(/[^\d+]/g, "");
+  if (cleaned.startsWith("+")) return "+" + cleaned.slice(1).replace(/\D/g, "");
+  if (cleaned.startsWith("00")) return "+" + cleaned.slice(2);
+  const local = cleaned.replace(/^0+/, "");
+  if (dialCode && !local.startsWith(dialCode)) return `+${dialCode}${local}`;
+  return "+" + local;
 }

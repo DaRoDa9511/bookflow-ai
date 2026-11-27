@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Pencil, Plus, Trash2, Users } from "lucide-react";
+import { Pencil, Plus, Trash2, UserCheck, Users } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -19,6 +19,8 @@ import {
 import { Input, Textarea } from "@/components/ui/input";
 import { Field, Label } from "@/components/ui/label";
 import { EmptyState, Skeleton, Switch } from "@/components/ui/misc";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 import { cn, initials } from "@/lib/utils";
 import type { Business, Service, Staff } from "@/types/models";
 import { useQueryClient } from "@tanstack/react-query";
@@ -65,6 +67,8 @@ export function StaffAvatar({
 export function StaffEditor({ business }: { business: Business }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const { profile, session, refresh } = useAuth();
+  const [addingMe, setAddingMe] = useState(false);
   const staffQ = useStaff(business.id);
   const servicesQ = useServices(business.id);
   const linksQ = useStaffServices(business.id);
@@ -96,6 +100,42 @@ export function StaffEditor({ business }: { business: Business }) {
           icon={<Users />}
           title={t("catalog.noStaff")}
           description={t("catalog.noStaffHint")}
+          action={
+            <Button
+              loading={addingMe}
+              onClick={async () => {
+                setAddingMe(true);
+                try {
+                  const me = await upsert.mutateAsync({
+                    business_id: business.id,
+                    display_name: profile?.full_name || t("catalog.me"),
+                    color: STAFF_COLORS[0],
+                    is_active: true,
+                  });
+                  await setStaffServices(
+                    business.id,
+                    String(me.id),
+                    (servicesQ.data ?? []).map((s) => s.id),
+                  );
+                  // Link the owner's account to this staff profile (agenda filters, etc.).
+                  await supabase
+                    .from("memberships")
+                    .update({ staff_id: me.id })
+                    .eq("business_id", business.id)
+                    .eq("user_id", session!.user.id);
+                  await qc.invalidateQueries({ queryKey: catalogKeys.staffServices(business.id) });
+                  await refresh();
+                  toast.success(t("common.saved"));
+                } catch (e) {
+                  toast.error((e as Error).message);
+                } finally {
+                  setAddingMe(false);
+                }
+              }}
+            >
+              <UserCheck /> {t("catalog.iWorkHere")}
+            </Button>
+          }
         />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">

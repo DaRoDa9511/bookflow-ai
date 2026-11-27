@@ -92,6 +92,15 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     strict: true,
   },
   {
+    name: "confirm_attendance",
+    description:
+      "Records that the customer confirms they will attend an upcoming appointment (e.g. they replied 'Confirmar' to a reminder). Use booking_id from list_my_bookings, or null for their next appointment.",
+    input_schema: obj({
+      booking_id: nullableStr("Booking id from list_my_bookings, or null for the next appointment"),
+    }),
+    strict: true,
+  },
+  {
     name: "handoff_to_human",
     description:
       "Flags the conversation so a person from the business replies. Use for complaints, medical questions, emergencies or anything you can't solve.",
@@ -130,6 +139,7 @@ export const TOOL_SCHEMAS: Record<string, z.ZodTypeAny> = {
     booking_id: z.string().min(1),
     reason: z.string().nullable().optional(),
   }),
+  confirm_attendance: z.object({ booking_id: z.string().min(1).nullable().optional() }),
   handoff_to_human: z.object({ reason: z.string().min(1) }),
 };
 
@@ -285,6 +295,7 @@ export async function executeTool(
         staff_id: r.staff_id,
         local_time: fmt(r.starts_at),
         start: r.starts_at,
+        attendance_confirmed: Boolean(r.customer_confirmed_at),
       }));
     }
 
@@ -314,6 +325,21 @@ export async function executeTool(
       if (!mine.some((x) => x.id === i.booking_id)) throw new AgentError("booking_not_found");
       await store.cancel(i.booking_id, i.reason ?? "cancelled_by_customer");
       return { status: "cancelled", booking_id: i.booking_id };
+    }
+
+    case "confirm_attendance": {
+      const i = input as z.infer<(typeof TOOL_SCHEMAS)["confirm_attendance"]>;
+      const mine = await store.customerBookings(b.id, tc.phone);
+      const booking = i.booking_id ? mine.find((x) => x.id === i.booking_id) : mine[0];
+      if (!booking) throw new AgentError("booking_not_found");
+      await store.confirmAttendance(booking.id);
+      return {
+        status: "attendance_confirmed",
+        booking_id: booking.id,
+        service: booking.service_name,
+        staff: booking.staff_name,
+        local_time: fmt(booking.starts_at),
+      };
     }
 
     case "handoff_to_human": {

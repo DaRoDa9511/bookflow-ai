@@ -25,6 +25,7 @@ import { EmptyState } from "@/components/ui/misc";
 import { DateStrip, SlotPicker } from "@/features/availability/SlotPicker";
 import { waLink } from "@/features/catalog/ShareCard";
 import { StaffAvatar } from "@/features/catalog/StaffEditor";
+import { dialCodeFor, phonePlaceholder, timezoneLabel } from "@/lib/regional";
 import { supabase } from "@/lib/supabase";
 import { cn, E164, errorCode, formatMoney, normalizePhone } from "@/lib/utils";
 import type { PublicBusiness } from "@/types/models";
@@ -79,7 +80,7 @@ export default function BusinessPage() {
         p_staff_id: slot!.staff_id,
         p_starts_at: slot!.start,
         p_customer_name: name.trim(),
-        p_customer_phone: normalizePhone(phone),
+        p_customer_phone: normalizePhone(phone, dialCodeFor(bizQ.data?.business.timezone)),
       });
       if (error) throw error;
       return data as { booking_id: string; starts_at: string; ends_at: string };
@@ -111,7 +112,7 @@ export default function BusinessPage() {
   const service = services.find((s) => s.id === serviceId);
   const eligible = staff.filter((s) => !serviceId || s.service_ids.includes(serviceId));
   const staffNames = Object.fromEntries(staff.map((s) => [s.id, s.display_name]));
-  const normalized = normalizePhone(phone);
+  const normalized = normalizePhone(phone, dialCodeFor(tz));
   const phoneOk = E164.test(normalized);
   const money = (n: number) => formatMoney(n, business.currency, i18n.language);
   const stepsLabels = [
@@ -180,7 +181,7 @@ export default function BusinessPage() {
         </div>
       </section>
 
-      <main className="container grid gap-6 py-8 lg:grid-cols-[1fr_340px]">
+      <main className="container grid grid-cols-1 gap-6 py-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <Card>
           <CardHeader>
             <CardTitle>
@@ -218,6 +219,7 @@ export default function BusinessPage() {
                       setServiceId(s.id);
                       setStaffId(null);
                       setSlot(null);
+                      setDate((d) => d ?? localDate(new Date(), tz));
                       setStep(1);
                     }}
                     className="rounded-lg border p-4 text-left transition hover:border-primary hover:bg-accent"
@@ -332,7 +334,7 @@ export default function BusinessPage() {
                     id="p-phone"
                     type="tel"
                     autoComplete="tel"
-                    placeholder="+57 300 123 4567"
+                    placeholder={phonePlaceholder(tz)}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
@@ -473,7 +475,10 @@ export default function BusinessPage() {
           </Card>
           <p className="px-1 text-xs text-muted-foreground">
             {t("public.policy", { hours: business.cancellation_hours })} ·{" "}
-            {t("public.timesIn", { tz, today: localDate(new Date(), tz) })}
+            {t("public.timesIn", {
+              tz: timezoneLabel(tz, i18n.language),
+              today: localDate(new Date(), tz),
+            })}
           </p>
         </aside>
       </main>

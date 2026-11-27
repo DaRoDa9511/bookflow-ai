@@ -18,6 +18,7 @@ import { Input, Select, Textarea } from "@/components/ui/input";
 import { Field } from "@/components/ui/label";
 import { useServices, useStaff, useStaffServices } from "@/features/catalog/api";
 import { DateStrip, SlotPicker } from "@/features/availability/SlotPicker";
+import { dialCodeFor, phonePlaceholder } from "@/lib/regional";
 import { E164, errorCode, formatMoney, normalizePhone } from "@/lib/utils";
 import type { Booking, Business } from "@/types/models";
 import { statusVariant, useBookingActions } from "./api";
@@ -45,6 +46,11 @@ export function BookingDetailsDialog({
   const actions = useBookingActions(business.id);
   const onError = useErrorToast();
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [moving, setMoving] = useState(false);
+  const [moveDate, setMoveDate] = useState(() =>
+    localDate(new Date(booking.starts_at), business.timezone),
+  );
+  const [moveSlot, setMoveSlot] = useState<{ start: string; staff_id: string } | null>(null);
   const [reason, setReason] = useState("");
   const active = booking.status === "confirmed" || booking.status === "pending_payment";
   const started = new Date(booking.starts_at) <= new Date();
@@ -67,6 +73,11 @@ export function BookingDetailsDialog({
             <DialogTitle className="flex items-center gap-2">
               {booking.services?.name}
               <Badge variant={statusVariant[booking.status]}>{t(`status.${booking.status}`)}</Badge>
+              {booking.customer_confirmed_at && booking.status === "confirmed" && (
+                <Badge variant="success">
+                  <CheckCircle2 className="h-3 w-3" /> {t("bookings.customerConfirmed")}
+                </Badge>
+              )}
             </DialogTitle>
             <DialogDescription className="flex items-center gap-1.5">
               <CalendarClock className="h-4 w-4" />
@@ -116,8 +127,59 @@ export function BookingDetailsDialog({
               </div>
             )}
           </dl>
-          {canManage && active && (
+          {canManage && active && moving && (
+            <div className="space-y-3 rounded-lg border p-3">
+              <p className="text-sm font-medium">{t("bookings.rescheduleTitle")}</p>
+              <DateStrip
+                timezone={business.timezone}
+                value={moveDate}
+                onChange={(d) => {
+                  setMoveDate(d);
+                  setMoveSlot(null);
+                }}
+              />
+              <SlotPicker
+                slug={business.slug}
+                timezone={business.timezone}
+                serviceId={booking.service_id}
+                staffId={booking.staff_id}
+                date={moveDate}
+                value={moveSlot}
+                onChange={setMoveSlot}
+                minLeadMinutes={0}
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setMoving(false)}>
+                  {t("common.cancel")}
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={!moveSlot}
+                  loading={actions.reschedule.isPending}
+                  onClick={async () => {
+                    if (!moveSlot) return;
+                    try {
+                      await actions.reschedule.mutateAsync({
+                        id: booking.id,
+                        start: moveSlot.start,
+                      });
+                      toast.success(t("bookings.moved"));
+                      onClose();
+                    } catch (e) {
+                      onError(e);
+                    }
+                  }}
+                >
+                  {t("bookings.rescheduleSave")}
+                </Button>
+              </div>
+            </div>
+          )}
+          {canManage && active && !moving && (
             <DialogFooter className="flex-wrap">
+              <Button variant="outline" onClick={() => setMoving(true)}>
+                <CalendarClock /> {t("bookings.reschedule")}
+              </Button>
               <Button variant="outline" onClick={() => setConfirmCancel(true)}>
                 <XCircle /> {t("bookings.cancelBooking")}
               </Button>
@@ -130,9 +192,11 @@ export function BookingDetailsDialog({
                   <UserX /> {t("bookings.markNoShow")}
                 </Button>
               )}
-              <Button loading={actions.setStatus.isPending} onClick={() => set("completed")}>
-                <CheckCircle2 /> {t("bookings.markCompleted")}
-              </Button>
+              {started && (
+                <Button loading={actions.setStatus.isPending} onClick={() => set("completed")}>
+                  <CheckCircle2 /> {t("bookings.markCompleted")}
+                </Button>
+              )}
             </DialogFooter>
           )}
         </DialogContent>
@@ -195,7 +259,7 @@ export function NewBookingDialog({
   const eligible = staff.filter(
     (s) => !serviceId || links.some((l) => l.staff_id === s.id && l.service_id === serviceId),
   );
-  const normalized = normalizePhone(phone);
+  const normalized = normalizePhone(phone, dialCodeFor(business.timezone));
   const valid = serviceId && slot && name.trim().length >= 2 && E164.test(normalized);
   const staffNames = Object.fromEntries(staff.map((s) => [s.id, s.display_name]));
 
@@ -295,7 +359,7 @@ export function NewBookingDialog({
             <Input
               id="nb-phone"
               type="tel"
-              placeholder="+573001234567"
+              placeholder={phonePlaceholder(business.timezone)}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />

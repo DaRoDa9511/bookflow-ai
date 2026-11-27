@@ -2,7 +2,7 @@
 // WhatsApp: approved template "booking_reminder" (works outside the 24 h window).
 // Simulator: the template is rendered as text into the customer's conversation.
 import type { SqlStore } from "./agent/store.ts";
-import { TEMPLATES, type MessagingProvider } from "./messaging/provider.ts";
+import { TEMPLATE_BUTTONS, TEMPLATES, type MessagingProvider } from "./messaging/provider.ts";
 import { formatInZone } from "./time.ts";
 
 export interface ReminderRunResult {
@@ -46,13 +46,19 @@ export async function processDueReminders(
       const conversation =
         (await store.findConversation(phone, channel, businessId, 3650)) ??
         (await store.createConversation(phone, channel, businessId));
-      await provider.sendTemplate(phone, "booking_reminder", params);
+      const template = r.kind === "confirmation" ? "booking_confirmation" : "booking_reminder";
+      await provider.sendTemplate(phone, template, params);
       await store.addMessage(conversation, {
         role: "assistant",
         direction: "out",
-        content: TEMPLATES.booking_reminder(params),
+        content: TEMPLATES[template](params),
         tool_name: "reminder",
-        tool_payload: { template: "booking_reminder", kind: r.kind, booking_id: r.booking_id },
+        tool_payload: {
+          template,
+          kind: r.kind,
+          booking_id: r.booking_id,
+          buttons: TEMPLATE_BUTTONS[template],
+        },
       });
       await store.markReminder(id, "sent");
       result.sent++;

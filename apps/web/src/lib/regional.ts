@@ -30,6 +30,43 @@ export const TIMEZONES: { tz: string; country: string; currency: string }[] = [
   { tz: "UTC", country: "", currency: "USD" },
 ];
 
+/** International dialing code per country (without "+"). */
+export const DIAL_CODES: Record<string, string> = {
+  BO: "591",
+  CO: "57",
+  MX: "52",
+  PE: "51",
+  CL: "56",
+  AR: "54",
+  EC: "593",
+  VE: "58",
+  PY: "595",
+  UY: "598",
+  BR: "55",
+  PA: "507",
+  CR: "506",
+  GT: "502",
+  SV: "503",
+  HN: "504",
+  NI: "505",
+  DO: "1",
+  PR: "1",
+  US: "1",
+  ES: "34",
+};
+
+/** Dialing code for a business time zone (e.g. America/La_Paz → "591"). */
+export function dialCodeFor(tz: string | undefined): string {
+  const country = TIMEZONES.find((z) => z.tz === tz)?.country;
+  return (country && DIAL_CODES[country]) || "";
+}
+
+/** Phone input placeholder for a time zone, e.g. "+591 7XXXXXXX". */
+export function phonePlaceholder(tz: string | undefined): string {
+  const code = dialCodeFor(tz);
+  return code ? `+${code} …` : "+1 555 123 4567";
+}
+
 export const CURRENCIES = [
   "BOB",
   "COP",

@@ -46,6 +46,28 @@ describe("reminders", () => {
     expect((await processDueReminders(store, new SimulatorProvider())).sent).toBe(0);
   });
 
+  it("sends an immediate confirmation with buttons for web bookings", async () => {
+    const day = (
+      await db.query<{ d: string }>(
+        "select to_char(d, 'YYYY-MM-DD') d from generate_series(current_date + 3, current_date + 10, interval '1 day') d where extract(dow from d) between 1 and 5 limit 1",
+      )
+    ).rows[0].d;
+    await db.query(
+      "select create_public_booking('barberia-don-pepe', 'c1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000003', (($1::date)::timestamp + interval '18 hours') at time zone 'America/Bogota', 'Web Cliente', '+573009998800')",
+      [day],
+    );
+    const pending = await db.query<{ kind: string }>(
+      "select r.kind from reminders r join bookings b on b.id = r.booking_id join customers c on c.id = b.customer_id where c.phone = '+573009998800' and r.status = 'scheduled' order by r.kind",
+    );
+    expect(pending.rows.map((r) => r.kind)).toContain("confirmation");
+    await processDueReminders(store, new SimulatorProvider());
+    const msg = await db.query<{ content: string; tool_payload: { buttons: string[] } }>(
+      "select m.content, m.tool_payload from messages m join conversations c on c.id = m.conversation_id where c.phone = '+573009998800'",
+    );
+    expect(msg.rows[0].content).toMatch(/quedó confirmada/);
+    expect(msg.rows[0].tool_payload.buttons).toEqual(["Reprogramar", "Cancelar"]);
+  });
+
   it("uses the WhatsApp template and records failures", async () => {
     await db.query(
       "update reminders set send_at = now() - interval '1 minute' where kind = '2h' and status = 'scheduled'",

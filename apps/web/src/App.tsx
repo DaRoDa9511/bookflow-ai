@@ -12,6 +12,12 @@ import { useBusiness } from "@/lib/auth";
 const Landing = lazy(() => import("@/routes/public/Landing"));
 const Login = lazy(() => import("@/routes/auth/Login"));
 const Signup = lazy(() => import("@/routes/auth/Signup"));
+const ForgotPassword = lazy(() =>
+  import("@/routes/auth/PasswordPages").then((m) => ({ default: m.ForgotPassword })),
+);
+const ResetPassword = lazy(() =>
+  import("@/routes/auth/PasswordPages").then((m) => ({ default: m.ResetPassword })),
+);
 const Apply = lazy(() => import("@/routes/auth/Apply"));
 const ApplyStatus = lazy(() => import("@/routes/auth/ApplyStatus"));
 const AdminPage = lazy(() => import("@/routes/admin/AdminPage"));
@@ -57,6 +63,8 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/b/:slug" element={<BusinessPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/me" element={<MePage />} />
         <Route
           path="/login"

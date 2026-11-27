@@ -30,7 +30,13 @@ export const TEMPLATES: Record<string, (p: string[]) => string> = {
   booking_reminder: ([name, service, when, business]) =>
     `Hola ${name} 👋 Te recordamos tu cita de ${service} el ${when} en ${business}. Responde *Confirmar*, *Reprogramar* o *Cancelar*.`,
   booking_confirmation: ([name, service, when, business]) =>
-    `¡Listo ${name}! Tu cita de ${service} quedó confirmada para el ${when} en ${business}.`,
+    `¡Listo ${name}! Tu cita de ${service} quedó confirmada para el ${when} en ${business}. Si necesitas cambiarla responde *Reprogramar* o *Cancelar*.`,
+};
+
+/** Quick-reply buttons of each template (configure the same buttons in Meta's template). */
+export const TEMPLATE_BUTTONS: Record<string, string[]> = {
+  booking_reminder: ["Confirmar", "Reprogramar", "Cancelar"],
+  booking_confirmation: ["Reprogramar", "Cancelar"],
 };
 
 /**

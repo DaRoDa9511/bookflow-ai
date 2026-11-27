@@ -34,10 +34,13 @@ export function ChatThread({
   messages,
   typing,
   perspective = "customer",
+  onQuickReply,
 }: {
   messages: Message[];
   typing?: boolean;
   perspective?: "customer" | "business";
+  /** Simulator: tapping a template button sends its text as the customer. */
+  onQuickReply?: (text: string) => void;
 }) {
   const { t, i18n } = useTranslation();
   const end = useRef<HTMLDivElement>(null);
@@ -53,8 +56,10 @@ export function ChatThread({
 
   return (
     <div className="space-y-2 p-3" aria-live="polite">
-      {visible.map((m) => {
+      {visible.map((m, idx) => {
         const fromCustomer = m.role === "user";
+        const buttons = (m.tool_payload as { buttons?: string[] } | null)?.buttons ?? [];
+        const isLast = idx === visible.length - 1;
         const right = phone ? fromCustomer : !fromCustomer;
         const human = m.tool_name === "human";
         return (
@@ -86,6 +91,31 @@ export function ChatThread({
               >
                 {time(m.created_at, i18n.language)}
               </span>
+              {buttons.length > 0 && (
+                <div
+                  className={cn(
+                    "clear-both -mx-3 -mb-1.5 mt-2 flex border-t",
+                    phone ? "border-black/10" : "border-border",
+                  )}
+                >
+                  {buttons.map((b) => (
+                    <button
+                      key={b}
+                      type="button"
+                      disabled={!phone || !onQuickReply || !isLast}
+                      onClick={() => onQuickReply?.(b)}
+                      className={cn(
+                        "flex-1 px-2 py-1.5 text-xs font-medium [&:not(:first-child)]:border-l",
+                        phone
+                          ? "border-black/10 text-[#008069] enabled:hover:bg-black/5 disabled:opacity-60"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {b}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         );

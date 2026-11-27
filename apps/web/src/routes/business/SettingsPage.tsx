@@ -13,7 +13,13 @@ import { Input, Select } from "@/components/ui/input";
 import { Field } from "@/components/ui/label";
 import { PageHeader, Switch } from "@/components/ui/misc";
 import { useStaff } from "@/features/catalog/api";
-import { CURRENCIES, currencyLabel, timezoneLabel, timezoneOptions } from "@/lib/regional";
+import {
+  CURRENCIES,
+  currencyLabel,
+  dialCodeFor,
+  timezoneLabel,
+  timezoneOptions,
+} from "@/lib/regional";
 import { useAuth, useBusiness } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { E164, errorCode, normalizePhone } from "@/lib/utils";
@@ -89,7 +95,7 @@ export default function SettingsPage() {
   });
 
   async function onSubmit(v: Form) {
-    const phone = v.phone ? normalizePhone(v.phone) : null;
+    const phone = v.phone ? normalizePhone(v.phone, dialCodeFor(v.timezone)) : null;
     if (phone && !E164.test(phone)) {
       toast.error(t("errors.invalid_phone"));
       return;
@@ -293,7 +299,7 @@ export default function SettingsPage() {
             <CardDescription>{t("settings.teamHint")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-2 sm:grid-cols-[1fr_160px_auto]">
+            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_160px_auto]">
               <Input
                 type="email"
                 aria-label={t("common.email")}

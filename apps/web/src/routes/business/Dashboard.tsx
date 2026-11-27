@@ -1,5 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
-import { Bot, CalendarCheck, CircleDollarSign, Plus, UserX } from "lucide-react";
+import {
+  Bot,
+  CalendarCheck,
+  CircleDollarSign,
+  Percent,
+  Plus,
+  TrendingDown,
+  TrendingUp,
+  UserX,
+  Wallet,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -31,7 +41,33 @@ interface Metrics {
   today_revenue: number;
   today_no_shows: number;
   bot_share_30d: number;
+  // Added in migration 7 (optional so the page still works before it is applied).
+  today_confirmed_by_customer?: number;
+  revenue_week?: number;
+  revenue_prev_week?: number;
+  revenue_month?: number;
+  revenue_prev_month?: number;
+  no_show_rate_30d?: number;
+  top_services?: { name: string; bookings: number; revenue: number }[];
   series: { day: string; bookings: number; revenue: number }[];
+}
+
+function Trend({ current, previous }: { current: number; previous: number }) {
+  const { t } = useTranslation();
+  if (!previous) return <span>{t("dashboard.noPrevious")}</span>;
+  const pct = Math.round(((current - previous) / previous) * 100);
+  const up = pct >= 0;
+  return (
+    <span className={up ? "text-success" : "text-destructive"}>
+      {up ? (
+        <TrendingUp className="mr-0.5 inline h-3 w-3" />
+      ) : (
+        <TrendingDown className="mr-0.5 inline h-3 w-3" />
+      )}
+      {up ? "+" : ""}
+      {pct}% {t("dashboard.vsPrevious")}
+    </span>
+  );
 }
 
 export default function Dashboard() {
@@ -95,43 +131,108 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("dashboard.last30")}</CardTitle>
-          </CardHeader>
-          <CardContent className="h-72">
-            {m && (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={m.series}>
-                  <defs>
-                    <linearGradient id="fillBookings" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
-                  <XAxis
-                    dataKey="day"
-                    tickFormatter={(d: string) => d.slice(5)}
-                    fontSize={11}
-                    tickLine={false}
-                  />
-                  <YAxis allowDecimals={false} fontSize={11} width={28} tickLine={false} />
-                  <Tooltip />
-                  <Area
-                    type="monotone"
-                    dataKey="bookings"
-                    name={t("admin.bookings")}
-                    stroke="hsl(var(--primary))"
-                    fill="url(#fillBookings)"
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
+      {m?.revenue_week !== undefined && (
+        <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Stat
+            icon={<Wallet />}
+            label={t("dashboard.revenueWeek")}
+            value={formatMoney(m.revenue_week, business.currency, i18n.language)}
+            hint={<Trend current={m.revenue_week} previous={m.revenue_prev_week ?? 0} />}
+          />
+          <Stat
+            icon={<Wallet />}
+            label={t("dashboard.revenueMonth")}
+            value={formatMoney(m.revenue_month ?? 0, business.currency, i18n.language)}
+            hint={<Trend current={m.revenue_month ?? 0} previous={m.revenue_prev_month ?? 0} />}
+          />
+          <Stat
+            icon={<Percent />}
+            label={t("dashboard.noShowRate")}
+            value={`${m.no_show_rate_30d ?? 0}%`}
+            hint={t("dashboard.last30Short")}
+          />
+          <Stat
+            icon={<CalendarCheck />}
+            label={t("dashboard.confirmedToday")}
+            value={`${m.today_confirmed_by_customer ?? 0} / ${m.today_bookings}`}
+            hint={t("dashboard.confirmedTodayHint")}
+          />
+        </div>
+      )}
+
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{t("dashboard.last30")}</CardTitle>
+            </CardHeader>
+            <CardContent className="h-72">
+              {m && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={m.series}>
+                    <defs>
+                      <linearGradient id="fillBookings" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      className="stroke-border"
+                    />
+                    <XAxis
+                      dataKey="day"
+                      tickFormatter={(d: string) => d.slice(5)}
+                      fontSize={11}
+                      tickLine={false}
+                    />
+                    <YAxis allowDecimals={false} fontSize={11} width={28} tickLine={false} />
+                    <Tooltip />
+                    <Area
+                      type="monotone"
+                      dataKey="bookings"
+                      name={t("admin.bookings")}
+                      stroke="hsl(var(--primary))"
+                      fill="url(#fillBookings)"
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          {m?.top_services && m.top_services.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{t("dashboard.topServices")}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {m.top_services.map((s) => {
+                  const max = m.top_services![0].bookings || 1;
+                  return (
+                    <div key={s.name} className="space-y-1">
+                      <div className="flex justify-between gap-2 text-sm">
+                        <span className="truncate">{s.name}</span>
+                        <span className="shrink-0 tabular-nums text-muted-foreground">
+                          {t("dashboard.bookingsCount", { count: s.bookings })} ·{" "}
+                          {formatMoney(s.revenue, business.currency, i18n.language)}
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-muted">
+                        <div
+                          className="h-1.5 rounded-full bg-primary"
+                          style={{ width: `${Math.max(6, (s.bookings / max) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
         <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0">
@@ -179,7 +280,9 @@ export default function Dashboard() {
                       })}
                     </p>
                     <Badge variant={statusVariant[b.status]} className="mt-0.5">
-                      {t(`sources.${b.source}`)}
+                      {b.customer_confirmed_at
+                        ? t("bookings.customerConfirmedShort")
+                        : t(`sources.${b.source}`)}
                     </Badge>
                   </div>
                 </button>

@@ -17,6 +17,7 @@ import { statusVariant } from "@/features/bookings/api";
 import { useErrorToast } from "@/features/bookings/BookingDialogs";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
+import { dialCodeFor, phonePlaceholder } from "@/lib/regional";
 import { E164, formatMoney, normalizePhone } from "@/lib/utils";
 import type { BookingStatus } from "@/types/models";
 
@@ -40,7 +41,8 @@ function OtpLogin() {
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const normalized = normalizePhone(phone);
+  const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const normalized = normalizePhone(phone, dialCodeFor(browserTz));
 
   async function send() {
     setLoading(true);
@@ -78,7 +80,7 @@ function OtpLogin() {
           <Input
             id="me-phone"
             type="tel"
-            placeholder="+57 300 123 4567"
+            placeholder={phonePlaceholder(browserTz)}
             value={phone}
             disabled={sent}
             onChange={(e) => setPhone(e.target.value)}

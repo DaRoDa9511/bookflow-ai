@@ -22,6 +22,15 @@ export async function invokeFunction<T>(name: string, body: unknown): Promise<T>
   const { data, error } = await supabase.functions.invoke<T>(name, { body: body as object });
   if (error) {
     let message = error.message;
+    const status = (error as { context?: Response }).context?.status;
+    if (status === 401 || status === 403) {
+      // Expired or revoked session: sign out locally so the guard sends the user to /login.
+      const { error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        await supabase.auth.signOut({ scope: "local" });
+        throw new Error("session_expired");
+      }
+    }
     try {
       const ctx = (error as { context?: Response }).context;
       if (ctx && typeof ctx.json === "function") {

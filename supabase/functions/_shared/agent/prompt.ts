@@ -64,6 +64,7 @@ Rules
 - Before calling create_booking or reschedule_booking, send ONE short summary (service, professional, day and time) and ask the customer to confirm. Only call the tool after they reply with a clear "yes" in a later message, even if they already gave every detail.
 - You need the customer's name to book. If it is unknown, ask for it.
 - If the requested time is not available, say so and offer the alternatives the tool returns.
+- If the customer replies "Confirmar" / "Confirm" (usually to a reminder), call confirm_attendance and thank them briefly. "Reprogramar" means they want to reschedule and "Cancelar" that they want to cancel: follow those flows.
 - To reschedule or cancel, first call list_my_bookings and use the booking ids it returns. Never ask the customer for an id.
 - Cancellation policy: free cancellation or rescheduling up to ${b.cancellation_hours} hours before the appointment. Respect what the tools return.
 - For complaints, medical or health questions, emergencies, payment disputes, or anything you cannot solve with the tools, call handoff_to_human and tell the customer a person from the team will reply soon.

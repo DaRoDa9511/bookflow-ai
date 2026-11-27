@@ -13,22 +13,23 @@ import { Input, Select } from "@/components/ui/input";
 import { Field } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
-import { timezoneLabel, timezoneOptions } from "@/lib/regional";
+import { dialCodeFor, phonePlaceholder, timezoneLabel, timezoneOptions } from "@/lib/regional";
 import { E164, normalizePhone } from "@/lib/utils";
 import type { Application, BusinessCategory } from "@/types/models";
 
 const CATEGORIES: BusinessCategory[] = ["barbershop", "salon", "clinic", "spa", "other"];
 
-const schema = z.object({
-  business_name: z.string().min(2).max(80),
-  category: z.enum(["barbershop", "salon", "clinic", "spa", "other"]),
-  city: z.string().min(2),
-  phone: z
-    .string()
-    .transform((v) => normalizePhone(v))
-    .refine((v) => E164.test(v)),
-  timezone: z.string().min(1),
-});
+const schema = z
+  .object({
+    business_name: z.string().min(2).max(80),
+    category: z.enum(["barbershop", "salon", "clinic", "spa", "other"]),
+    city: z.string().min(2),
+    phone: z.string().min(6),
+    timezone: z.string().min(1),
+  })
+  // The dialing code comes from the selected time zone (e.g. Bolivia -> +591).
+  .transform((v) => ({ ...v, phone: normalizePhone(v.phone, dialCodeFor(v.timezone)) }))
+  .refine((v) => E164.test(v.phone), { path: ["phone"] });
 type Form = z.input<typeof schema>;
 
 export function useMyApplication() {
@@ -61,6 +62,7 @@ export default function Apply() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<Form>({
     resolver: zodResolver(schema),
@@ -124,7 +126,12 @@ export default function Apply() {
               hint={t("apply.phoneHint")}
               error={errors.phone && t("errors.invalid_phone")}
             >
-              <Input id="a-phone" type="tel" placeholder="+573001234567" {...register("phone")} />
+              <Input
+                id="a-phone"
+                type="tel"
+                placeholder={phonePlaceholder(watch("timezone"))}
+                {...register("phone")}
+              />
             </Field>
             <Field label={t("apply.timezone")} htmlFor="a-tz">
               <Select id="a-tz" {...register("timezone")}>

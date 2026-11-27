@@ -26,7 +26,7 @@ describe("Gemini adapter", () => {
       },
     });
     const tools = toGeminiTools(TOOL_DEFINITIONS)[0].functionDeclarations;
-    expect(tools).toHaveLength(9);
+    expect(tools).toHaveLength(10);
     expect(tools.find((t) => t.name === "list_services")).not.toHaveProperty("parameters");
     expect(JSON.stringify(tools)).not.toMatch(/additionalProperties|"strict"/);
   });

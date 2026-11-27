@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Clock, Pencil, Plus, Scissors, Trash2 } from "lucide-react";
+import { Clock, LayoutTemplate, Pencil, Plus, Scissors, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -22,6 +22,7 @@ import { EmptyState, Skeleton, Switch } from "@/components/ui/misc";
 import { formatMoney } from "@/lib/utils";
 import type { Business, Service } from "@/types/models";
 import { catalogKeys, useServices, useTableMutation } from "./api";
+import { ServiceTemplateDialog } from "./TemplateDialog";
 
 const schema = z.object({
   name: z.string().min(2),
@@ -39,12 +40,16 @@ export function ServicesEditor({ business }: { business: Business }) {
   const { upsert, remove } = useTableMutation("services", [catalogKeys.services(business.id)]);
   const [editing, setEditing] = useState<Partial<Service> | null>(null);
   const [deleting, setDeleting] = useState<Service | null>(null);
+  const [templateOpen, setTemplateOpen] = useState(false);
 
   if (isLoading) return <Skeleton className="h-40 w-full" />;
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button variant="outline" onClick={() => setTemplateOpen(true)}>
+          <LayoutTemplate /> {t("templates.useTemplate")}
+        </Button>
         <Button
           onClick={() => setEditing({ is_active: true, duration_min: 30, price: 0, buffer_min: 0 })}
         >
@@ -57,6 +62,12 @@ export function ServicesEditor({ business }: { business: Business }) {
           icon={<Scissors />}
           title={t("catalog.noServices")}
           description={t("catalog.noServicesHint")}
+          action={
+            <Button onClick={() => setTemplateOpen(true)}>
+              <LayoutTemplate />{" "}
+              {t("templates.title", { category: t(`categories.${business.category}`) })}
+            </Button>
+          }
         />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -99,6 +110,14 @@ export function ServicesEditor({ business }: { business: Business }) {
             </Card>
           ))}
         </div>
+      )}
+
+      {templateOpen && (
+        <ServiceTemplateDialog
+          business={business}
+          existingNames={(services ?? []).map((s) => s.name)}
+          onClose={() => setTemplateOpen(false)}
+        />
       )}
 
       {editing && (

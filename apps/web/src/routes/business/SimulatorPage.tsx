@@ -108,7 +108,7 @@ export default function SimulatorPage() {
   return (
     <>
       <PageHeader title={t("nav.simulator")} description={t("simulator.subtitle")} />
-      <div className="grid gap-6 lg:grid-cols-[400px_1fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[400px_minmax(0,1fr)]">
         <div className="mx-auto w-full max-w-[400px]">
           <div className="overflow-hidden rounded-[2rem] border-[10px] border-neutral-900 bg-neutral-900 shadow-2xl">
             <div className="flex items-center gap-3 bg-[#008069] px-3 py-2.5 text-white">
@@ -138,7 +138,11 @@ export default function SimulatorPage() {
                   </p>
                 </div>
               ) : (
-                <ChatThread messages={messages} typing={sending} />
+                <ChatThread
+                  messages={messages}
+                  typing={sending}
+                  onQuickReply={(text) => void send(text)}
+                />
               )}
             </div>
             <form

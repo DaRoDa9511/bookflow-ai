@@ -1,6 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Crown, Scissors, Store } from "lucide-react";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -16,12 +14,8 @@ import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 const schema = z.object({ email: z.string().email(), password: z.string().min(6) });
 type Form = z.infer<typeof schema>;
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
-const DEMO_PASSWORD = (import.meta.env.VITE_DEMO_PASSWORD as string | undefined) ?? "";
-
 export default function Login() {
   const { t } = useTranslation();
-  const [demoLoading, setDemoLoading] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -32,12 +26,6 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) toast.error(t("errors.invalid_credentials"));
   }
-
-  const demo = [
-    { email: "admin@bookflow.demo", label: t("auth.demoAdmin"), icon: <Crown /> },
-    { email: "owner@donpepe.demo", label: t("auth.demoOwner"), icon: <Store /> },
-    { email: "barbero@donpepe.demo", label: t("auth.demoStaff"), icon: <Scissors /> },
-  ];
 
   return (
     <AuthLayout>
@@ -76,37 +64,15 @@ export default function Login() {
                 {...register("password")}
               />
             </Field>
+            <div className="-mt-2 text-right">
+              <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                {t("password.forgotLink")}
+              </Link>
+            </div>
             <Button type="submit" className="w-full" loading={isSubmitting}>
               {t("auth.login")}
             </Button>
           </form>
-
-          {DEMO_MODE && DEMO_PASSWORD && (
-            <div className="space-y-2">
-              <p className="text-center text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {t("auth.demoAccounts")}
-              </p>
-              <div className="grid gap-2">
-                {demo.map((d) => (
-                  <Button
-                    key={d.email}
-                    variant="outline"
-                    className="justify-start"
-                    loading={demoLoading === d.email}
-                    onClick={async () => {
-                      setDemoLoading(d.email);
-                      await signIn(d.email, DEMO_PASSWORD);
-                      setDemoLoading(null);
-                    }}
-                  >
-                    {d.icon}
-                    <span className="flex-1 text-left">{d.label}</span>
-                    <span className="text-xs text-muted-foreground">{d.email}</span>
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
 
           <p className="text-center text-sm text-muted-foreground">
             {t("auth.noAccount")}{" "}

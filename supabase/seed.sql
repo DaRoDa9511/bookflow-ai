@@ -226,3 +226,6 @@ select '00000000-0000-0000-0000-00000000a005', 'Spa Zen', 'spa', 'Medellín', '+
 where not exists (
   select 1 from public.business_applications where user_id = '00000000-0000-0000-0000-00000000a005'
 );
+
+-- Demo bookings are historical data: no "booking confirmation" messages for them.
+delete from public.reminders where kind = 'confirmation';

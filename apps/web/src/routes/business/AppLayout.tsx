@@ -28,17 +28,19 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLiveAlerts } from "@/features/alerts";
 import { useHandoffCount } from "@/features/chat/api";
 import { useAuth, useBusiness } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 export default function AppLayout() {
   const { t } = useTranslation();
-  const { business, isOwner } = useBusiness();
+  const { business, isOwner, staffId } = useBusiness();
   const { memberships, setActiveBusiness, signOut, profile } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const handoffs = useHandoffCount(business.id, isOwner);
+  useLiveAlerts(business, isOwner, staffId);
 
   const items = [
     { to: "/app", label: t("nav.dashboard"), icon: LayoutDashboard, owner: true, end: true },

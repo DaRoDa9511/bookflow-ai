@@ -104,6 +104,7 @@ export interface CustomerBooking {
   staff_id: string;
   staff_name: string;
   price: number;
+  customer_confirmed_at?: string | Date | null;
 }
 
 export interface ConversationRow {

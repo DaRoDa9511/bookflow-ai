@@ -72,7 +72,7 @@ export default function InboxPage() {
   return (
     <>
       <PageHeader title={t("nav.inbox")} description={t("inbox.subtitle")} />
-      <div className="grid h-[calc(100vh-13rem)] min-h-[520px] gap-4 md:grid-cols-[320px_1fr]">
+      <div className="grid h-[calc(100vh-13rem)] min-h-[520px] gap-4 md:grid-cols-[320px_minmax(0,1fr)]">
         <Card className={cn("flex flex-col overflow-hidden", selected && "hidden md:flex")}>
           <div className="flex items-center justify-between border-b p-3 text-sm">
             <label className="flex items-center gap-2">

@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { CalendarClock, Copy } from "lucide-react";
+import { CalendarClock, Copy, LayoutTemplate } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -10,21 +10,45 @@ import { EmptyState, Skeleton, Switch } from "@/components/ui/misc";
 import type { Business, WorkingHours } from "@/types/models";
 import { catalogKeys, setWeeklyHours, useStaff, useWorkingHours } from "./api";
 import { StaffAvatar } from "./StaffEditor";
+import { HOURS_TEMPLATES } from "./templates";
 
 interface DayRow {
   enabled: boolean;
   start: string;
   end: string;
+  /** Optional lunch break inside the day (saved as two working-hour rows). */
+  hasBreak: boolean;
+  breakStart: string;
+  breakEnd: string;
 }
+
+const CLOSED: DayRow = {
+  enabled: false,
+  start: "09:00",
+  end: "18:00",
+  hasBreak: false,
+  breakStart: "13:00",
+  breakEnd: "14:00",
+};
 
 const ORDER = [1, 2, 3, 4, 5, 6, 0]; // Monday first
 
 function toRows(hours: WorkingHours[], staffId: string): DayRow[] {
   return Array.from({ length: 7 }, (_, wd) => {
-    const h = hours.find((x) => x.staff_id === staffId && x.weekday === wd);
-    return h
-      ? { enabled: true, start: h.start_time.slice(0, 5), end: h.end_time.slice(0, 5) }
-      : { enabled: false, start: "09:00", end: "18:00" };
+    const day = hours
+      .filter((x) => x.staff_id === staffId && x.weekday === wd)
+      .sort((a, b) => (a.start_time < b.start_time ? -1 : 1));
+    if (day.length === 0) return { ...CLOSED };
+    const first = day[0];
+    const last = day[day.length - 1];
+    return {
+      enabled: true,
+      start: first.start_time.slice(0, 5),
+      end: last.end_time.slice(0, 5),
+      hasBreak: day.length > 1,
+      breakStart: day.length > 1 ? first.end_time.slice(0, 5) : CLOSED.breakStart,
+      breakEnd: day.length > 1 ? day[1].start_time.slice(0, 5) : CLOSED.breakEnd,
+    };
   });
 }
 
@@ -60,7 +84,14 @@ export function HoursEditor({ business }: { business: Business }) {
     rows
       .map((r, wd) => ({ ...r, wd }))
       .filter((r) => r.enabled && r.end > r.start)
-      .map((r) => ({ weekday: r.wd, start_time: r.start, end_time: r.end }));
+      .flatMap((r) =>
+        r.hasBreak && r.start < r.breakStart && r.breakStart < r.breakEnd && r.breakEnd < r.end
+          ? [
+              { weekday: r.wd, start_time: r.start, end_time: r.breakStart },
+              { weekday: r.wd, start_time: r.breakEnd, end_time: r.end },
+            ]
+          : [{ weekday: r.wd, start_time: r.start, end_time: r.end }],
+      );
 
   async function save(targets: string[]) {
     setSaving(true);
@@ -107,7 +138,7 @@ export function HoursEditor({ business }: { business: Business }) {
                 {weekdays[wd]}
               </label>
               {r.enabled ? (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Input
                     type="time"
                     aria-label={`${weekdays[wd]} start`}
@@ -123,6 +154,34 @@ export function HoursEditor({ business }: { business: Business }) {
                     value={r.end}
                     onChange={(e) => update({ end: e.target.value })}
                   />
+                  <label className="ml-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      className="h-3.5 w-3.5 accent-[hsl(var(--primary))]"
+                      checked={r.hasBreak}
+                      onChange={(e) => update({ hasBreak: e.target.checked })}
+                    />
+                    {t("catalog.lunchBreak")}
+                  </label>
+                  {r.hasBreak && (
+                    <>
+                      <Input
+                        type="time"
+                        aria-label={`${weekdays[wd]} ${t("catalog.lunchBreak")} start`}
+                        className="h-8 w-24"
+                        value={r.breakStart}
+                        onChange={(e) => update({ breakStart: e.target.value })}
+                      />
+                      <span className="text-muted-foreground">–</span>
+                      <Input
+                        type="time"
+                        aria-label={`${weekdays[wd]} ${t("catalog.lunchBreak")} end`}
+                        className="h-8 w-24"
+                        value={r.breakEnd}
+                        onChange={(e) => update({ breakEnd: e.target.value })}
+                      />
+                    </>
+                  )}
                 </div>
               ) : (
                 <span className="text-sm text-muted-foreground">{t("catalog.closed")}</span>
@@ -132,6 +191,22 @@ export function HoursEditor({ business }: { business: Business }) {
         })}
       </div>
       <div className="flex flex-wrap justify-end gap-2">
+        <Button
+          variant="outline"
+          onClick={() => {
+            const tpl = HOURS_TEMPLATES[business.category] ?? HOURS_TEMPLATES.other;
+            setRows(
+              Array.from({ length: 7 }, (_, wd) =>
+                tpl[wd]
+                  ? { ...CLOSED, enabled: true, start: tpl[wd][0], end: tpl[wd][1] }
+                  : { ...CLOSED },
+              ),
+            );
+            toast.info(t("templates.hoursFilled"));
+          }}
+        >
+          <LayoutTemplate /> {t("templates.typicalHours")}
+        </Button>
         {staffQ.data.length > 1 && (
           <Button
             variant="outline"

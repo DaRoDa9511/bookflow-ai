@@ -135,7 +135,7 @@ export default function Landing() {
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
-                  <Link to="/login">{t("landing.ctaDemo")}</Link>
+                  <Link to="/login">{t("auth.login")}</Link>
                 </Button>
               </div>
               <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">

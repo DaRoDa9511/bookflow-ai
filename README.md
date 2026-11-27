@@ -19,11 +19,11 @@ Barbershops, salons, clinics and spas get a WhatsApp assistant that answers ques
 - **AI agent on WhatsApp** (LLM with tool use: Google Gemini on the free tier or Claude, switchable with one env var): answers FAQs from the business knowledge base, offers only real free slots, books, lists, reschedules and cancels, and hands off to a human for complaints or medical questions. Replies in the customer's language (ES/EN).
 - **One number for every business**: customers write `Hola DONPEPE` (the business booking code, via a `wa.me` link or QR); the agent routes the chat to that business.
 - **Built-in WhatsApp simulator**: the same pipeline as WhatsApp, so anyone can try the bot without Meta credentials. Bookings appear in the calendar in real time.
-- **Business dashboard**: KPIs, 30-day chart, FullCalendar agenda per staff with drag-to-reschedule, bookings table with CSV export, customers with history and total spent, inbox with tool calls and manual takeover.
-- **Multi-tenant onboarding**: owners apply, the super admin approves (welcome email via Resend), then a 4-step setup: services, staff, hours, knowledge base → `wa.me` link and QR.
+- **Business dashboard**: KPIs (revenue this week/month vs previous, no-show rate, appointments confirmed by the customer, top services), 30-day chart, agenda as a mobile-friendly day list or FullCalendar per staff with drag-to-reschedule, reschedule from the appointment dialog, bookings table with CSV export, customers with history and total spent, inbox with manual takeover, and live toasts for new bookings and customers asking for a person.
+- **Multi-tenant onboarding**: owners apply, the super admin approves (welcome email via Resend), then a 4-step setup with ready-made templates per category (services with suggested durations, typical hours, "I work here" for solo owners, lunch breaks) and knowledge base → `wa.me` link and QR.
 - **Public booking page** `/b/:slug` (4 steps) and customer portal `/me` with phone OTP.
-- **Reminders** 24 h and 2 h before, sent by `pg_cron` through the active provider (WhatsApp template or simulator).
-- **Roles**: super admin, owner, staff (own agenda only), customer, all enforced with Postgres RLS.
+- **Confirmation and reminders**: a confirmation right after a web/panel booking and reminders 24 h and 2 h before, sent by `pg_cron` through the active provider (WhatsApp template or simulator), with **Confirm / Reschedule / Cancel** quick-reply buttons. "Confirm" marks the appointment as confirmed by the customer (shown in the agenda); rescheduling clears it.
+- **Roles**: super admin, owner, staff (own agenda only), customer, all enforced with Postgres RLS. Real email/password sign-in with password recovery; signing out only ends the current device's session.
 - ES/EN, dark mode, responsive from 360 px, empty states, skeletons, toasts and confirmations.
 
 ## Architecture

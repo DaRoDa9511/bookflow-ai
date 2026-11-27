@@ -49,7 +49,7 @@ export function ShareCard({
         </CardTitle>
         <CardDescription>{t("share.subtitle", { code: business.booking_code })}</CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-6 md:grid-cols-[auto_1fr]">
+      <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-[auto_minmax(0,1fr)]">
         <div ref={qrRef} className="mx-auto flex flex-col items-center gap-2">
           <div className="rounded-lg bg-white p-3">
             <QRCodeCanvas value={link} size={168} includeMargin={false} />

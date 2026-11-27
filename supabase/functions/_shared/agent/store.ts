@@ -144,7 +144,7 @@ export class SqlStore {
     await this.sql(
       `insert into public.messages
          (conversation_id, business_id, direction, role, content, tool_name, tool_payload, provider_message_id)
-       values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+       values ($1, $2, $3, $4, $5, $6, ($7::text)::jsonb, $8)`,
       [
         conversation.id,
         conversation.business_id,
@@ -283,6 +283,7 @@ export class SqlStore {
   async customerBookings(businessId: string, phone: string): Promise<CustomerBooking[]> {
     const rows = await this.sql(
       `select b.id, b.starts_at, b.ends_at, b.status::text, b.service_id, s.name as service_name,
+              b.customer_confirmed_at,
               b.staff_id, st.display_name as staff_name, b.price::float8 as price
        from public.bookings b
        join public.customers c on c.id = b.customer_id
@@ -307,6 +308,13 @@ export class SqlStore {
         start,
         staffId,
       ]),
+    );
+  }
+
+  async confirmAttendance(bookingId: string) {
+    await this.sql(
+      "update public.bookings set customer_confirmed_at = now() where id = $1 and status = 'confirmed'",
+      [bookingId],
     );
   }
 

@@ -4,7 +4,7 @@ import interactionPlugin, { type DateClickArg } from "@fullcalendar/interaction"
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import { Plus, Radio } from "lucide-react";
+import { CalendarDays, List, Plus, Radio } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -20,7 +20,10 @@ import {
   useErrorToast,
 } from "@/features/bookings/BookingDialogs";
 import { useStaff } from "@/features/catalog/api";
+import { AgendaList } from "@/features/bookings/AgendaList";
 import { useBusiness } from "@/lib/auth";
+import { timezoneLabel } from "@/lib/regional";
+import { cn } from "@/lib/utils";
 import type { Booking } from "@/types/models";
 
 /**
@@ -46,6 +49,23 @@ export default function CalendarPage() {
   const [filterStaff, setFilterStaff] = useState<string>(isOwner ? "" : (myStaffId ?? ""));
   const [selected, setSelected] = useState<Booking | null>(null);
   const [creating, setCreating] = useState<{ date?: string } | null>(null);
+  const [view, setViewState] = useState<"list" | "calendar">(() => {
+    try {
+      const saved = localStorage.getItem("bf-agenda-view");
+      if (saved === "list" || saved === "calendar") return saved;
+    } catch {
+      /* ignore */
+    }
+    return window.innerWidth < 768 || !isOwner ? "list" : "calendar";
+  });
+  const setView = (v: "list" | "calendar") => {
+    setViewState(v);
+    try {
+      localStorage.setItem("bf-agenda-view", v);
+    } catch {
+      /* ignore */
+    }
+  };
   const actions = useBookingActions(business.id);
   const onError = useErrorToast();
   useBookingsRealtime(business.id);
@@ -93,9 +113,38 @@ export default function CalendarPage() {
     <>
       <PageHeader
         title={t("nav.calendar")}
-        description={t("calendar.subtitle", { tz: business.timezone })}
+        description={t(view === "list" ? "calendar.subtitleList" : "calendar.subtitle", {
+          tz: timezoneLabel(business.timezone, i18n.language),
+        })}
         actions={
           <>
+            <div
+              className="inline-flex rounded-md border p-0.5"
+              role="group"
+              aria-label={t("agenda.view")}
+            >
+              {(["list", "calendar"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={view === v}
+                  onClick={() => setView(v)}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium",
+                    view === v
+                      ? "bg-accent text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {v === "list" ? (
+                    <List className="h-3.5 w-3.5" />
+                  ) : (
+                    <CalendarDays className="h-3.5 w-3.5" />
+                  )}
+                  {t(`agenda.${v}`)}
+                </button>
+              ))}
+            </div>
             <span className="flex items-center gap-1.5 self-center text-xs text-success">
               <Radio className="h-3.5 w-3.5 animate-pulse" /> {t("calendar.live")}
             </span>
@@ -130,42 +179,50 @@ export default function CalendarPage() {
           ))}
         </div>
       )}
-      <Card className="p-2 sm:p-4">
-        <FullCalendar
-          plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
-          initialView={window.innerWidth < 640 ? "timeGridDay" : "timeGridWeek"}
-          headerToolbar={{
-            left: "prev,next today",
-            center: "title",
-            right: "timeGridDay,timeGridWeek,dayGridMonth",
-          }}
-          locales={[esLocale]}
-          locale={i18n.language.startsWith("es") ? "es" : "en"}
-          firstDay={1}
-          nowIndicator
-          allDaySlot={false}
-          slotMinTime="07:00:00"
-          slotMaxTime="21:00:00"
-          height="auto"
-          expandRows
-          events={events}
-          eventDurationEditable={false}
-          eventDrop={onDrop}
-          eventClick={(arg: EventClickArg) =>
-            setSelected(arg.event.extendedProps.booking as Booking)
-          }
-          dateClick={(arg: DateClickArg) =>
-            setCreating({
-              date: `${arg.date.getFullYear()}-${String(arg.date.getMonth() + 1).padStart(2, "0")}-${String(arg.date.getDate()).padStart(2, "0")}`,
-            })
-          }
-          datesSet={(arg: DatesSetArg) => {
-            const from = new Date(arg.start.getTime() - 86_400_000).toISOString();
-            const to = new Date(arg.end.getTime() + 86_400_000).toISOString();
-            setRange((r) => (r?.from === from && r?.to === to ? r : { from, to }));
-          }}
+      {view === "list" ? (
+        <AgendaList
+          business={business}
+          staffId={filterStaff || null}
+          canManage={(b) => isOwner || b.staff_id === myStaffId}
         />
-      </Card>
+      ) : (
+        <Card className="p-2 sm:p-4">
+          <FullCalendar
+            plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
+            initialView={window.innerWidth < 640 ? "timeGridDay" : "timeGridWeek"}
+            headerToolbar={{
+              left: "prev,next today",
+              center: "title",
+              right: "timeGridDay,timeGridWeek,dayGridMonth",
+            }}
+            locales={[esLocale]}
+            locale={i18n.language.startsWith("es") ? "es" : "en"}
+            firstDay={1}
+            nowIndicator
+            allDaySlot={false}
+            slotMinTime="07:00:00"
+            slotMaxTime="21:00:00"
+            height="auto"
+            expandRows
+            events={events}
+            eventDurationEditable={false}
+            eventDrop={onDrop}
+            eventClick={(arg: EventClickArg) =>
+              setSelected(arg.event.extendedProps.booking as Booking)
+            }
+            dateClick={(arg: DateClickArg) =>
+              setCreating({
+                date: `${arg.date.getFullYear()}-${String(arg.date.getMonth() + 1).padStart(2, "0")}-${String(arg.date.getDate()).padStart(2, "0")}`,
+              })
+            }
+            datesSet={(arg: DatesSetArg) => {
+              const from = new Date(arg.start.getTime() - 86_400_000).toISOString();
+              const to = new Date(arg.end.getTime() + 86_400_000).toISOString();
+              setRange((r) => (r?.from === from && r?.to === to ? r : { from, to }));
+            }}
+          />
+        </Card>
+      )}
       {selected && (
         <BookingDetailsDialog
           booking={selected}

@@ -10,7 +10,9 @@ describe("web utils", () => {
   });
 
   it("normalizes phones to E.164", () => {
-    expect(normalizePhone("300 123 4567")).toBe("+573001234567");
+    expect(normalizePhone("300 123 4567", "57")).toBe("+573001234567");
+    expect(normalizePhone("727 92030", "591")).toBe("+59172792030");
+    expect(normalizePhone("59172792030", "591")).toBe("+59172792030");
     expect(normalizePhone("+52 55 1234 5678")).toBe("+525512345678");
     expect(E164.test(normalizePhone("0034 600 111 222"))).toBe(true);
   });

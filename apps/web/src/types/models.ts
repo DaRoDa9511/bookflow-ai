@@ -129,6 +129,7 @@ export interface Booking {
   price: number;
   notes: string | null;
   cancelled_reason: string | null;
+  customer_confirmed_at?: string | null;
   created_at: string;
   customers?: Pick<Customer, "id" | "name" | "phone"> | null;
   services?: Pick<Service, "id" | "name" | "duration_min"> | null;
